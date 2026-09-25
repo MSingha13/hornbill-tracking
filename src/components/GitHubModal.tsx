@@ -7,7 +7,7 @@ interface GitHubModalProps {
 }
 
 export const GitHubModal: React.FC<GitHubModalProps> = ({ isOpen, onClose }) => {
-  const [username, setUsername] = useState('your-username');
+  const [username, setUsername] = useState('msingha13');
   const [repoName, setRepoName] = useState('hornbill-tracking');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
