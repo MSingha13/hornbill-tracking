@@ -1,5 +1,5 @@
 import React from 'react';
-import { gistdaLogo } from '../assets/assets';
+import { gistdaLogo, bsrcLogo } from '../assets/assets';
 
 interface PartnerLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -44,7 +44,7 @@ export const GistdaLogo: React.FC<PartnerLogoProps> = ({
 
 /**
  * 2. BSRC Official Logo (Pure Logo, No extra text)
- * Leaf droplet + lowercase "bsrc"
+ * High-definition master graphic: Energy leaf droplet loop + green 'b' + red 'src'.
  */
 export const BsrcLogo: React.FC<PartnerLogoProps> = ({
   size = 'md',
@@ -56,78 +56,24 @@ export const BsrcLogo: React.FC<PartnerLogoProps> = ({
     lg: 'h-12 px-3.5',
   };
 
+  const imgHeights = {
+    sm: 'h-5 w-auto max-w-[80px]',
+    md: 'h-6 sm:h-7 w-auto max-w-[96px]',
+    lg: 'h-8 sm:h-9 w-auto max-w-[125px]',
+  };
+
   return (
     <div
       className={`inline-flex items-center justify-center rounded-xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all ${badgeHeights[size]} ${className}`}
-      title="BSRC"
+      title="BSRC (Bangchak Sriracha)"
     >
-      <svg
-        viewBox="0 0 200 84"
-        className="h-full w-auto max-w-[110px] sm:max-w-[125px] object-contain flex-shrink-0"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          {/* Orange-gold flame gradient */}
-          <linearGradient id="bsrc-flame-pure" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#fbbf24" />
-          </linearGradient>
-          {/* Silver metallic fold gradient */}
-          <linearGradient id="bsrc-silver-pure" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#e2e8f0" />
-            <stop offset="100%" stopColor="#94a3b8" />
-          </linearGradient>
-        </defs>
-
-        {/* Bangchak / BSRC Droplet Leaf Emblem */}
-        <g transform="translate(6, 6)">
-          {/* Main outer body: Vivid Green leaf loop */}
-          <path
-            d="M 45 4 C 54 12, 60 25, 60 42 C 60 62, 45 76, 27 76 C 10 76, 0 63, 0 45 C 0 30, 8 16, 22 6 C 25 3, 29 4, 30 7 C 32 12, 30 18, 25 24 C 18 31, 14 38, 14 46 C 14 55, 20 63, 30 63 C 41 63, 47 52, 47 39 C 47 27, 43 17, 36 10 C 34 7, 36 4, 40 4 Z"
-            fill="#5cb338"
-          />
-
-          {/* Silver fold on upper-left curve */}
-          <path
-            d="M 22 6 C 28 12, 33 19, 34 25 C 29 28, 22 25, 17 21 C 18 15, 20 10, 22 6 Z"
-            fill="url(#bsrc-silver-pure)"
-          />
-
-          {/* Warm Orange/Yellow flame curve in top fold */}
-          <path
-            d="M 26 18 C 36 14, 46 11, 52 14 C 48 19, 41 22, 32 23 C 28 22, 26 20, 26 18 Z"
-            fill="url(#bsrc-flame-pure)"
-          />
-        </g>
-
-        {/* Lowercase Typography: "bsrc" */}
-        {/* 'b' in Bright Green (#3bb54a) */}
-        <text
-          x="84"
-          y="64"
-          fill="#3bb54a"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          fontWeight="800"
-          fontSize="56"
-          letterSpacing="-1.5"
-        >
-          b
-        </text>
-
-        {/* 'src' in Vibrant Red (#e31b23) */}
-        <text
-          x="116"
-          y="64"
-          fill="#e31b23"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          fontWeight="800"
-          fontSize="56"
-          letterSpacing="-1.5"
-        >
-          src
-        </text>
-      </svg>
+      <img
+        src={bsrcLogo}
+        alt="BSRC"
+        className={`${imgHeights[size]} object-contain select-none`}
+        loading="eager"
+        decoding="sync"
+      />
     </div>
   );
 };
