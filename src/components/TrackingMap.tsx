@@ -267,7 +267,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
                   <span>${point.record.assetId || 'KKOZ01'}</span>
                   <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">ตำแหน่งล่าสุด</span>
                 </div>
-                <div class="text-[11px] text-emerald-600 font-medium">สัญญาณสดแบบเรียลไทม์</div>
+                <div class="text-[11px] text-emerald-600 font-medium">🛰️ สัญญาณดาวเทียม GlobalStar</div>
               </div>
             </div>
             <div class="space-y-1.5 text-xs">
@@ -422,30 +422,30 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[460px] rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 bg-white flex flex-col ${
-        isFullscreen ? 'fixed inset-4 z-50 rounded-2xl shadow-2xl border-2 border-emerald-600' : ''
+      className={`relative w-full h-full min-h-[360px] sm:min-h-[460px] rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 bg-white flex flex-col ${
+        isFullscreen ? 'fixed inset-2 sm:inset-4 z-50 rounded-2xl shadow-2xl border-2 border-emerald-600' : ''
       } ${className}`}
     >
       {/* Map container - Expands 100% to fill bounding frame */}
-      <div ref={mapContainerRef} className="w-full h-full flex-1 z-0 min-h-[440px]" />
+      <div ref={mapContainerRef} className="w-full h-full flex-1 z-0 min-h-[340px] sm:min-h-[440px]" />
 
       {/* Top Left: Map Controls & Pointing Tools */}
-      <div className="absolute top-3 left-3 z-[400] flex flex-wrap items-center gap-2">
+      <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-[400] flex flex-wrap items-center gap-1.5 sm:gap-2 max-w-[calc(100%-60px)]">
         {/* Layer Selector */}
         <div className="relative">
           <button
             onClick={() => setShowLayerMenu(!showLayerMenu)}
-            className="flex items-center gap-2 px-3 py-2 bg-white/95 hover:bg-white text-slate-800 text-xs font-semibold rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-slate-800 text-[11px] sm:text-xs font-semibold rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
             title="เปลี่ยนรูปแบบแผนที่"
           >
-            <Layers className="w-4 h-4 text-emerald-600" />
-            <span>แผนที่ติดตาม</span>
-            <span className="text-[10px] text-slate-400">▾</span>
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
+            <span className="hidden xs:inline sm:inline">แผนที่</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">▾</span>
           </button>
 
           {showLayerMenu && (
-            <div className="absolute top-full left-0 mt-1.5 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95">
-              <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="absolute top-full left-0 mt-1.5 w-52 sm:w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95">
+              <div className="px-3 py-1.5 text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 ชั้นข้อมูลแผนที่ (Layer)
               </div>
               {MAP_LAYERS.map((layer) => (
@@ -472,18 +472,19 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         {/* Quick Point to Latest ("ชี้ตำแหน่งล่าสุด") Button */}
         <button
           onClick={handlePointToLatest}
-          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-md border border-emerald-800 backdrop-blur transition-all active:scale-95 ring-2 ring-emerald-500/20"
+          className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] sm:text-xs font-semibold rounded-xl shadow-md border border-emerald-800 backdrop-blur transition-all active:scale-95 ring-2 ring-emerald-500/20"
           title="ชี้พิกัดตำแหน่งล่าสุดทันที"
         >
           <Navigation className="w-3.5 h-3.5 text-amber-300" />
-          <span>ชี้ตำแหน่งล่าสุด</span>
+          <span className="hidden sm:inline">ชี้ตำแหน่งล่าสุด</span>
+          <span className="sm:hidden">ชี้ตำแหน่ง</span>
         </button>
 
         {/* Center / Fit all points button */}
         <button
           onClick={handleFitBounds}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white/95 hover:bg-white text-slate-700 text-xs font-medium rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
-          title="ซูมแสดงภาพรวมทุกพิกัด"
+          className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-slate-700 text-[11px] sm:text-xs font-medium rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
+          title="จัดกึ่งกลางทุกพิกัด"
         >
           <Crosshair className="w-3.5 h-3.5 text-slate-600" />
           <span className="hidden sm:inline">จัดกึ่งกลาง</span>
@@ -492,7 +493,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         {/* Flight replay button */}
         <button
           onClick={toggleReplay}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl shadow-md backdrop-blur transition-all active:scale-95 ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-xl shadow-md backdrop-blur transition-all active:scale-95 ${
             isPlayingReplay
               ? 'bg-amber-500 text-white hover:bg-amber-600 border border-amber-600'
               : 'bg-white/95 hover:bg-white text-slate-700 border border-slate-200'
@@ -500,13 +501,14 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           title="จำลองเส้นทางการบินย้อนหลัง"
         >
           {isPlayingReplay ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 text-emerald-600" />}
-          <span>{isPlayingReplay ? 'หยุดชั่วคราว' : 'เล่นเส้นทางบิน'}</span>
+          <span className="hidden sm:inline">{isPlayingReplay ? 'หยุดชั่วคราว' : 'เล่นเส้นทางบิน'}</span>
+          <span className="sm:hidden">{isPlayingReplay ? 'หยุด' : 'เล่นบิน'}</span>
         </button>
 
         {isPlayingReplay && (
           <button
             onClick={handleResetReplay}
-            className="p-2 bg-white/95 hover:bg-white text-slate-600 text-xs rounded-xl shadow-md border border-slate-200 backdrop-blur"
+            className="p-1.5 sm:p-2 bg-white/95 hover:bg-white text-slate-600 text-xs rounded-xl shadow-md border border-slate-200 backdrop-blur"
             title="รีเซ็ตเส้นทาง"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -515,10 +517,10 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       </div>
 
       {/* Top Right: Fullscreen Expand/Collapse */}
-      <div className="absolute top-3 right-12 z-[400]">
+      <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-[400]">
         <button
           onClick={toggleFullscreen}
-          className="p-2 bg-white/95 hover:bg-white text-slate-700 rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
+          className="p-1.5 sm:p-2 bg-white/95 hover:bg-white text-slate-700 rounded-xl shadow-md border border-slate-200 backdrop-blur transition-all active:scale-95"
           title={isFullscreen ? 'ย่อหน้าต่างกลับ' : 'ขยายแผนที่เต็มจอ'}
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4 text-emerald-700" /> : <Maximize2 className="w-4 h-4 text-slate-700" />}
@@ -526,18 +528,19 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       </div>
 
       {/* Flight Legend overlay at bottom right */}
-      <div className="absolute bottom-6 right-3 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-slate-200/80 text-[11px] text-slate-700 flex items-center gap-3">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-0.5 border-t-2 border-dashed border-emerald-600"></span>
-          <span>เส้นทางบิน</span>
+      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-3 z-[400] bg-white/95 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow-md border border-slate-200/80 text-[10px] sm:text-[11px] text-slate-700 flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <span className="w-2.5 sm:w-3.5 h-0.5 border-t-2 border-dashed border-emerald-600"></span>
+          <span className="hidden xs:inline">เส้นทางบิน</span>
+          <span className="xs:hidden">บิน</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 border border-white"></span>
           <span>จุดพิกัด</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-400 border border-white shadow-xs"></span>
-          <span className="font-semibold text-emerald-800">จุดล่าสุด</span>
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400 border border-white shadow-xs"></span>
+          <span className="font-semibold text-emerald-800">ล่าสุด</span>
         </div>
       </div>
     </div>

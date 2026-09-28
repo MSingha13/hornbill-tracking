@@ -102,6 +102,14 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({ latest, onFo
             </div>
           </div>
 
+          <div className="flex items-center justify-between py-1 border-b border-slate-50">
+            <span className="text-slate-500">สัญญาณระบุพิกัด</span>
+            <span className="font-semibold text-emerald-800 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              GlobalStar (Satellite IoT)
+            </span>
+          </div>
+
           {/* Battery Status Bar */}
           <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
             <span className="text-slate-500 flex items-center gap-1">

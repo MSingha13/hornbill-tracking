@@ -17,9 +17,9 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }
   const tempNum = latest?.temperature ? parseFloat(String(latest?.temperature)) : 15.5;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
       {/* Card 1: Asset Code & Species */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3.5">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-3.5">
         <div className="relative flex-shrink-0 w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-amber-400 to-emerald-500 shadow-sm">
           <img
             src={hornbillIcon}

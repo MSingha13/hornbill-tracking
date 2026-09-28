@@ -1,6 +1,7 @@
 import React from 'react';
 import { hornbillPortrait, hornbillIcon } from '../assets/assets';
-import { ShieldCheck, MapPin, Feather, Heart, Radio, Activity, Compass, Wind } from 'lucide-react';
+import { ShieldCheck, MapPin, Feather, Heart, Radio, Activity, Compass, Wind, Award } from 'lucide-react';
+import { GistdaLogo, BsrcLogo, KhaoKheowZooLogo } from './PartnerLogos';
 
 export const SpeciesInfoView: React.FC = () => {
   return (
@@ -64,11 +65,47 @@ export const SpeciesInfoView: React.FC = () => {
           </div>
           <h3 className="font-bold text-slate-900 text-sm">อุปกรณ์ติดตามดาวเทียม (KKOZ01)</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            ใช้แท็กน้ำหนักเบาไม่เกิน 3% ของน้ำหนักตัวนก ติดตั้งระบบ Solar & Battery, เซนเซอร์ GPS/GNSS, วัดอุณหภูมิ และส่งสัญญาณผ่านระบบดาวเทียม/เครือข่ายภาคพื้นดิน
+            ใช้แท็กน้ำหนักเบาไม่เกิน 3% ของน้ำหนักตัวนก ติดตั้งระบบ Solar & Battery, เซนเซอร์ GPS/GNSS, วัดอุณหภูมิ และส่งสัญญาณผ่านระบบดาวเทียม GlobalStar IoT เครือข่าย LEO Satellite
           </p>
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">ความถี่ส่งพิกัด:</span>
-            <span className="font-bold text-slate-800">ทุก 15-30 นาที</span>
+            <span className="text-slate-500">รหัสอุปกรณ์:</span>
+            <span className="font-bold text-slate-800 font-mono">KKOZ01 (Khao Kheow)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Conservation Partners Showcase Section */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-2 mb-2">
+          <Award className="w-5 h-5 text-amber-500" />
+          <h3 className="font-bold text-slate-900 text-base">
+            ภาคีความร่วมมือโครงการติดตามและอนุรักษ์นกกก
+          </h3>
+        </div>
+        <p className="text-xs text-slate-500 mb-5">
+          ความร่วมมือทางเทคโนโลยีสารสนเทศ อวกาศ และการฟื้นฟูประชากรสัตว์ป่าหายากเพื่อระบบนิเวศไทย
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 space-y-2.5">
+            <GistdaLogo size="md" showLabel={true} />
+            <p className="text-xs text-slate-600 leading-relaxed">
+              สนับสนุนเทคโนโลยีภูมิสารสนเทศ ระบบดาวเทียมสำรวจและประมวลผลข้อมูลพิกัดเชิงพื้นที่ (GIS) แบบเรียลไทม์
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 space-y-2.5">
+            <BsrcLogo size="md" showLabel={true} />
+            <p className="text-xs text-slate-600 leading-relaxed">
+              บมจ. บางจาก ศรีราชา ร่วมสนับสนุนโครงการด้านสิ่งแวดล้อมและความยั่งยืน เพื่อการฟื้นฟูผืนป่าและสัตว์ป่า
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-100 space-y-2.5">
+            <KhaoKheowZooLogo size="md" showLabel={true} />
+            <p className="text-xs text-slate-600 leading-relaxed">
+              สวนสัตว์เปิดเขาเขียว ผู้นำด้านการเพาะขยายพันธุ์ วิจัยชีววิทยา และปล่อยนกกกคืนสู่ธรรมชาติ
+            </p>
           </div>
         </div>
       </div>
