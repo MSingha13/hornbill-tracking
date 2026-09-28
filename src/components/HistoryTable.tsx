@@ -143,8 +143,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/80 text-[11px]">
-                  <div className="font-mono text-slate-600">
-                    {isNaN(latVal) ? '-' : latVal.toFixed(4)}, {isNaN(lngVal) ? '-' : lngVal.toFixed(4)}
+                  <div className="font-mono text-slate-700 leading-tight">
+                    <div><span className="text-[10px] text-slate-400 font-sans">Lat:</span> {isNaN(latVal) ? '-' : `${latVal.toFixed(4)}° N`}</div>
+                    <div><span className="text-[10px] text-slate-400 font-sans">Lng:</span> {isNaN(lngVal) ? '-' : `${lngVal.toFixed(4)}° E`}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { TrackingRecord, MapLayerConfig } from '../types/tracking';
-import { formatCoordinates, formatThaiDate, formatThaiTime } from '../utils/formatters';
+import { formatCoordinates, formatLatitude, formatLongitude, formatThaiDate, formatThaiTime } from '../utils/formatters';
 import { hornbillIcon } from '../assets/assets';
 import {
   Layers,
@@ -273,7 +273,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between"><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record.recordedAt)}</span></div>
               <div class="flex justify-between"><span class="text-slate-500">เวลา:</span> <span class="font-medium">${formatThaiTime(point.record.recordedAt)}</span></div>
-              <div class="flex justify-between"><span class="text-slate-500">พิกัด:</span> <span class="font-mono text-emerald-700 font-semibold">${formatCoordinates(point.lat, point.lng)}</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLatitude(point.lat)}</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLongitude(point.lng)}</span></div>
               <div class="flex justify-between"><span class="text-slate-500">ระดับแบตเตอรี่:</span> <span class="font-semibold text-emerald-600">${point.record.battery}%</span></div>
               <div class="flex justify-between"><span class="text-slate-500">อุณหภูมิ:</span> <span class="font-semibold text-amber-600">${point.record.temperature} °C</span></div>
               ${point.record.speed ? `<div class="flex justify-between"><span class="text-slate-500">ความเร็ว:</span> <span>${point.record.speed} กม./ชม.</span></div>` : ''}
@@ -311,7 +312,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
             <div class="font-bold text-sm text-slate-900 mb-1">จุดที่ ${seqIndex + 1}: ${point.record.assetId || 'KKOZ01'}</div>
             <div class="space-y-1 text-xs">
               <div><span class="text-slate-500">เวลา:</span> <span class="font-medium">${formatThaiDate(point.record.recordedAt)} ${formatThaiTime(point.record.recordedAt)}</span></div>
-              <div><span class="text-slate-500">พิกัด:</span> <span class="font-mono">${formatCoordinates(point.lat, point.lng)}</span></div>
+              <div><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono">${formatLatitude(point.lat)}</span></div>
+              <div><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono">${formatLongitude(point.lng)}</span></div>
               <div><span class="text-slate-500">แบตเตอรี่:</span> ${point.record.battery}% | ${point.record.temperature} °C</div>
               ${point.record.address ? `<div class="mt-1 text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded">${point.record.address}</div>` : ''}
             </div>

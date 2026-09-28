@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrackingRecord } from '../types/tracking';
-import { formatCoordinates } from '../utils/formatters';
+import { formatCoordinates, formatLatitude, formatLongitude } from '../utils/formatters';
 import { hornbillIcon } from '../assets/assets';
 import { MapPin, BatteryCharging, Thermometer, Zap, BarChart2 } from 'lucide-react';
 
@@ -42,7 +42,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }
       </div>
 
       {/* Card 2: Latest Location */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3.5">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-3.5">
         <div className="flex-shrink-0 w-13 h-13 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
           <MapPin className="w-6 h-6" />
         </div>
@@ -50,10 +50,17 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             ตำแหน่งล่าสุด
           </div>
-          <div className="text-base sm:text-lg font-bold text-slate-900 font-mono tracking-tight truncate">
-            {coordsFormatted !== '-' ? coordsFormatted : '17.3345° N, 98.9752° E'}
+          <div className="font-mono text-slate-900 tracking-tight leading-tight mt-0.5">
+            <div className="text-sm sm:text-base font-bold flex items-center gap-1">
+              <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lat</span>
+              <span>{latest?.latitude ? formatLatitude(latest.latitude) : '17.3345° N'}</span>
+            </div>
+            <div className="text-sm sm:text-base font-bold flex items-center gap-1">
+              <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lng</span>
+              <span>{latest?.longitude ? formatLongitude(latest.longitude) : '98.9752° E'}</span>
+            </div>
           </div>
-          <div className="text-xs text-slate-500 truncate mt-0.5" title={address}>
+          <div className="text-xs text-slate-500 truncate mt-1" title={address}>
             {address}
           </div>
         </div>

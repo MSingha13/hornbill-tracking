@@ -1,6 +1,6 @@
 import React from 'react';
 import { hornbillIcon, forestBg } from '../assets/assets';
-import { Home, Map, BarChart3, Feather, Leaf, X, Award } from 'lucide-react';
+import { Home, Map, Feather, Leaf, X, Award } from 'lucide-react';
 import { GistdaLogo, BsrcLogo, KhaoKheowZooLogo } from './PartnerLogos';
 
 interface SidebarProps {
@@ -19,7 +19,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'หน้าหลัก', icon: Home },
     { id: 'map', label: 'แผนที่ติดตาม', icon: Map },
-    { id: 'reports', label: 'รายงาน', icon: BarChart3 },
     { id: 'species', label: 'ข้อมูลนกกก', icon: Feather },
   ];
 

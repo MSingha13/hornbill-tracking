@@ -44,6 +44,22 @@ export function formatThaiDateTime(dateString?: string): string {
   return `${date} ${time}`;
 }
 
+export function formatLatitude(lat?: string | number): string {
+  if (lat === undefined || lat === '' || lat === null) return '-';
+  const nLat = typeof lat === 'string' ? parseFloat(lat) : lat;
+  if (isNaN(nLat)) return '-';
+  const latDir = nLat >= 0 ? 'N' : 'S';
+  return `${Math.abs(nLat).toFixed(4)}° ${latDir}`;
+}
+
+export function formatLongitude(lng?: string | number): string {
+  if (lng === undefined || lng === '' || lng === null) return '-';
+  const nLng = typeof lng === 'string' ? parseFloat(lng) : lng;
+  if (isNaN(nLng)) return '-';
+  const lngDir = nLng >= 0 ? 'E' : 'W';
+  return `${Math.abs(nLng).toFixed(4)}° ${lngDir}`;
+}
+
 export function formatCoordinates(lat?: string | number, lng?: string | number): string {
   if (lat === undefined || lng === undefined || lat === '' || lng === '') return '-';
   const nLat = typeof lat === 'string' ? parseFloat(lat) : lat;

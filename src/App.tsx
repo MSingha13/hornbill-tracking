@@ -16,7 +16,7 @@ import { TrackingRecord, TrackingApiResponse } from './types/tracking';
 import { exportToCSV, formatThaiDateTime } from './utils/formatters';
 import { THAI_PARKS_DEMO_DATA } from './data/mockThaiData';
 import { API_ENDPOINT } from './assets/assets';
-import { Home, Map, BarChart3, Feather, AlertCircle, Menu } from 'lucide-react';
+import { Home, Map, Feather, AlertCircle, Menu } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -233,18 +233,6 @@ export default function App() {
           >
             <Map className="w-5 h-5" />
             <span>แผนที่</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentTab('reports')}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10px] font-medium transition-all ${
-              currentTab === 'reports'
-                ? 'text-emerald-800 font-bold bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span>รายงาน</span>
           </button>
 
           <button
