@@ -214,7 +214,7 @@ export const SpeciesInfoView: React.FC = () => {
           <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 space-y-2.5">
             <GistdaLogo size="md" />
             <p className="text-xs text-slate-600 leading-relaxed">
-              สนับสนุนเทคโนโลยีภูมิสารสนเทศ ระบบดาวเทียมสำรวจและประมวลผลข้อมูลพิกัดเชิงพื้นที่ (GIS) แบบเรียลไทม์
+              สนับสนุนการประยุกต์ใช้เทคโนโลยีอวกาศ เทคโนโลยีภูมิสารสนเทศ ระบบดาวเทียมสำรวจโลกและประมวลผลข้อมูลพิกัดเชิงพื้นที่ (GIS) แบบเรียลไทม์
             </p>
           </div>
 
