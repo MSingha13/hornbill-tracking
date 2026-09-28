@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="hidden xs:inline text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                ระบบติดตามนกกก
+                ระบบติดตามนกกาฮัง
               </span>
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 tracking-tight">
                 HORNBILL TRACKING

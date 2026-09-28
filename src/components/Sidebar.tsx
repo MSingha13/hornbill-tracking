@@ -19,7 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'หน้าหลัก', icon: Home },
     { id: 'map', label: 'แผนที่ติดตาม', icon: Map },
-    { id: 'species', label: 'ข้อมูลนกกก', icon: Feather },
+    { id: 'species', label: 'ข้อมูลนกกาฮัง', icon: Feather },
   ];
 
   const handleSelectTab = (tabId: string) => {
@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             HORNBILL TRACKING
           </h2>
           <p className="text-xs font-medium text-emerald-400/90 mt-0.5">
-            ระบบติดตามนกกก
+            ระบบติดตามนกกาฮัง
           </p>
         </div>
 

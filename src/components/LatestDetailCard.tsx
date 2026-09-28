@@ -44,7 +44,7 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({ latest, onFo
         <div className="relative rounded-xl overflow-hidden aspect-4/3 mb-4 shadow-inner bg-slate-900 group">
           <img
             src={hornbillPortrait}
-            alt="นกกก Great Hornbill"
+            alt="นกกาฮัง Great Hornbill"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
@@ -53,7 +53,7 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({ latest, onFo
               <span className="text-[10px] uppercase font-semibold tracking-wider bg-emerald-700/80 px-2 py-0.5 rounded backdrop-blur-xs">
                 สถานะปลอดภัย
               </span>
-              <div className="font-bold text-sm drop-shadow-sm mt-1">นกกก (Great Hornbill)</div>
+              <div className="font-bold text-sm drop-shadow-sm mt-1">นกกาฮัง (Great Hornbill)</div>
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-300 font-mono">Buceros bicornis</span>
@@ -72,7 +72,7 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({ latest, onFo
 
           <div className="flex items-center justify-between py-1 border-b border-slate-50">
             <span className="text-slate-500">ชนิด</span>
-            <span className="font-medium text-slate-800">นกกก (Great Hornbill)</span>
+            <span className="font-medium text-slate-800">นกกาฮัง (Great Hornbill)</span>
           </div>
 
           <div className="flex items-center justify-between py-1 border-b border-slate-50">

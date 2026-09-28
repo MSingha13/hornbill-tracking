@@ -244,7 +244,7 @@ export default function App() {
             }`}
           >
             <Feather className="w-5 h-5" />
-            <span>นกกก</span>
+            <span>นกกาฮัง</span>
           </button>
 
           <button
