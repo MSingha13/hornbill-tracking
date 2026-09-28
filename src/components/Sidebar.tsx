@@ -93,13 +93,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="space-y-2">
             <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
-              <GistdaLogo size="sm" showLabel={false} className="w-full !border-0 !shadow-none justify-center" />
+              <GistdaLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
             </div>
             <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
-              <BsrcLogo size="sm" showLabel={false} className="w-full !border-0 !shadow-none justify-center" />
+              <BsrcLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
             </div>
             <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
-              <KhaoKheowZooLogo size="sm" showLabel={false} className="w-full !border-0 !shadow-none justify-center" />
+              <KhaoKheowZooLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
             </div>
           </div>
         </div>

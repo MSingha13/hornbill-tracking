@@ -88,21 +88,21 @@ export const SpeciesInfoView: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 space-y-2.5">
-            <GistdaLogo size="md" showLabel={true} />
+            <GistdaLogo size="md" />
             <p className="text-xs text-slate-600 leading-relaxed">
               สนับสนุนเทคโนโลยีภูมิสารสนเทศ ระบบดาวเทียมสำรวจและประมวลผลข้อมูลพิกัดเชิงพื้นที่ (GIS) แบบเรียลไทม์
             </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 space-y-2.5">
-            <BsrcLogo size="md" showLabel={true} />
+            <BsrcLogo size="md" />
             <p className="text-xs text-slate-600 leading-relaxed">
               บมจ. บางจาก ศรีราชา ร่วมสนับสนุนโครงการด้านสิ่งแวดล้อมและความยั่งยืน เพื่อการฟื้นฟูผืนป่าและสัตว์ป่า
             </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-100 space-y-2.5">
-            <KhaoKheowZooLogo size="md" showLabel={true} />
+            <KhaoKheowZooLogo size="md" />
             <p className="text-xs text-slate-600 leading-relaxed">
               สวนสัตว์เปิดเขาเขียว ผู้นำด้านการเพาะขยายพันธุ์ วิจัยชีววิทยา และปล่อยนกกกคืนสู่ธรรมชาติ
             </p>

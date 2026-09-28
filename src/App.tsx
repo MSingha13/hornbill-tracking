@@ -20,7 +20,6 @@ import { Home, Map, BarChart3, Feather, AlertCircle, Menu } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const [records, setRecords] = useState<TrackingRecord[]>([]);
   const [latestRecord, setLatestRecord] = useState<TrackingRecord | undefined>(undefined);
   const [selectedRecord, setSelectedRecord] = useState<TrackingRecord | null>(null);
@@ -30,19 +29,9 @@ export default function App() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
 
   // Fetch tracking data (Manual update on trigger or initial load)
-  const fetchData = useCallback(async (useDemo = isDemoMode) => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
-    if (useDemo) {
-      setTimeout(() => {
-        setRecords(THAI_PARKS_DEMO_DATA.records);
-        setLatestRecord(THAI_PARKS_DEMO_DATA.latest);
-        setIsLoading(false);
-        setLastUpdated(new Date());
-      }, 400);
-      return;
-    }
 
     try {
       const response = await fetch(API_ENDPOINT, {
@@ -74,18 +63,12 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [isDemoMode]);
+  }, []);
 
   // Initial load once on component mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleToggleDemoMode = () => {
-    const nextMode = !isDemoMode;
-    setIsDemoMode(nextMode);
-    fetchData(nextMode);
-  };
 
   const handleExportCSV = () => {
     exportToCSV(records, `hornbill-tracking-${latestRecord?.assetId || 'KKOZ01'}.csv`);
@@ -120,8 +103,6 @@ export default function App() {
           isLoading={isLoading}
           onExportCSV={handleExportCSV}
           lastUpdatedTime={formatThaiDateTime(lastUpdated.toISOString())}
-          isDemoMode={isDemoMode}
-          onToggleDemoMode={handleToggleDemoMode}
           onToggleMobileMenu={() => setIsMobileDrawerOpen(true)}
         />
 

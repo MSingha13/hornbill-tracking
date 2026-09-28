@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Download, Sparkles, Menu, Radio } from 'lucide-react';
+import { RefreshCw, Download, Menu, Radio } from 'lucide-react';
 import { hornbillIcon } from '../assets/assets';
 import { GistdaLogo, BsrcLogo, KhaoKheowZooLogo } from './PartnerLogos';
 
@@ -8,8 +8,6 @@ interface HeaderProps {
   isLoading: boolean;
   onExportCSV: () => void;
   lastUpdatedTime: string;
-  isDemoMode: boolean;
-  onToggleDemoMode: () => void;
   onToggleMobileMenu?: () => void;
 }
 
@@ -18,8 +16,6 @@ export const Header: React.FC<HeaderProps> = ({
   isLoading,
   onExportCSV,
   lastUpdatedTime,
-  isDemoMode,
-  onToggleDemoMode,
   onToggleMobileMenu,
 }) => {
   return (
@@ -55,17 +51,11 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 tracking-tight">
                 HORNBILL TRACKING
               </h1>
-              {isDemoMode ? (
-                <span className="text-[10px] sm:text-[11px] font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
-                  อช.แจ้ซ้อน
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <Radio className="w-3 h-3 text-emerald-700" />
-                  <span>สัญญาณ GlobalStar</span>
-                </span>
-              )}
+              <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <Radio className="w-3 h-3 text-emerald-700" />
+                <span>สัญญาณ GlobalStar</span>
+              </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 font-normal hidden sm:block mt-0.5">
               “เทคโนโลยีเพื่อการอนุรักษ์ สู่อนาคตที่ยั่งยืน”
@@ -87,30 +77,14 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right Section: Partner Logos (GISTDA, BSRC, สวนสัตว์เปิดเขาเขียว) & Action Buttons */}
+      {/* Right Section: Partner Logos (GISTDA, BSRC, สวนสัตว์เปิดเขาเขียว - Pure Logos, No text) & Action Buttons */}
       <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 md:pb-0 justify-start md:justify-end">
         {/* Partner Logos: GISTDA, BSRC, Khao Kheow Open Zoo */}
         <div className="flex items-center gap-1.5 sm:gap-2 pr-2 sm:pr-3 border-r border-slate-200 flex-shrink-0">
-          <GistdaLogo size="sm" showLabel={true} />
-          <BsrcLogo size="sm" showLabel={true} />
-          <KhaoKheowZooLogo size="sm" showLabel={true} />
+          <GistdaLogo size="sm" />
+          <BsrcLogo size="sm" />
+          <KhaoKheowZooLogo size="sm" />
         </div>
-
-        {/* Toggle Mode Button */}
-        <button
-          onClick={onToggleDemoMode}
-          className={`flex-shrink-0 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-xl border transition-all flex items-center gap-1.5 shadow-xs ${
-            isDemoMode
-              ? 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100'
-              : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
-          }`}
-          title="สลับโหมดข้อมูล"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-          <span className="whitespace-nowrap">
-            {isDemoMode ? 'ข้อมูลสด API' : 'ดู อช.แจ้ซ้อน'}
-          </span>
-        </button>
 
         {/* Manual Refresh Button (Visible on md+) */}
         <button
