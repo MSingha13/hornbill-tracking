@@ -14,8 +14,6 @@ import {
   Camera,
   X,
   Maximize2,
-  TreePine,
-  Sparkles,
 } from 'lucide-react';
 import { GistdaLogo, BsrcLogo, KhaoKheowZooLogo } from './PartnerLogos';
 
@@ -109,10 +107,6 @@ export const SpeciesInfoView: React.FC = () => {
                 รวมภาพถ่ายชีววิทยา พฤติกรรมการหากิน และการบินของนกกาฮังในธรรมชาติ
               </p>
             </div>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium self-start sm:self-auto">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>4 ภาพถ่ายความคมชัดสูง</span>
           </div>
         </div>
 
