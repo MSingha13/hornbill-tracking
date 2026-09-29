@@ -139,8 +139,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records, latest }) => 
             const t = parseFloat(String(r.temperature)) || 0;
             return (
               <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
-                <span className="w-32 text-slate-500 font-mono truncate">
-                  {formatThaiTime(r.recordedAt)} ({formatThaiDate(r.recordedAt)})
+                <span className="w-32 text-slate-500 font-mono truncate" title="เวลาท้องถิ่น (Local Time)">
+                  {formatThaiTime(r)} ({formatThaiDate(r)})
                 </span>
                 <div className="flex-1 flex items-center gap-3">
                   <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden flex">

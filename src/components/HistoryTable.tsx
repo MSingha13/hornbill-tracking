@@ -129,11 +129,11 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                   <div className="text-[11px] text-slate-500 flex items-center gap-2">
                     <span className="flex items-center gap-1 font-sans">
                       <Calendar className="w-3 h-3 text-slate-400" />
-                      {formatThaiDate(r.recordedAt)}
+                      {formatThaiDate(r)}
                     </span>
-                    <span className="flex items-center gap-1 font-mono font-medium text-slate-700">
-                      <Clock className="w-3 h-3 text-slate-400" />
-                      {formatThaiTime(r.recordedAt)}
+                    <span className="flex items-center gap-1 font-mono font-medium text-slate-700" title="เวลาท้องถิ่น (Local Time)">
+                      <Clock className="w-3 h-3 text-emerald-600" />
+                      {formatThaiTime(r)}
                     </span>
                   </div>
                 </div>
@@ -190,7 +190,12 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               <th className="py-3 px-4 w-12 text-center">ลำดับ</th>
               <th className="py-3 px-4">รหัสติดตาม</th>
               <th className="py-3 px-4">วันที่</th>
-              <th className="py-3 px-4">เวลา</th>
+              <th className="py-3 px-4">
+                <span className="flex items-center gap-1">
+                  <span>เวลา</span>
+                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Local Time</span>
+                </span>
+              </th>
               <th className="py-3 px-4">ละติจูด</th>
               <th className="py-3 px-4">ลองจิจูด</th>
               <th className="py-3 px-4">พื้นที่ / ที่อยู่</th>
@@ -222,7 +227,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                     key={r.positionId || `${r.recordedAt}-${idx}`}
                     onClick={() => onSelectRecord(r)}
                     className={`hover:bg-emerald-50/50 cursor-pointer transition-colors ${
-                      isSelected ? 'bg-amber-50/80 font-medium' : index % 2 === 0 ? 'bg-slate-50/30' : 'bg-white'
+                      isSelected ? 'bg-amber-50/90 font-medium border-l-4 border-amber-500' : index % 2 === 0 ? 'bg-slate-50/30' : 'bg-white'
                     }`}
                   >
                     <td className="py-3 px-4 text-center font-mono text-slate-500">{index}</td>
@@ -232,10 +237,10 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                       </span>
                     </td>
                     <td className="py-3 px-4 text-slate-700 whitespace-nowrap">
-                      {formatThaiDate(r.recordedAt)}
+                      {formatThaiDate(r)}
                     </td>
-                    <td className="py-3 px-4 text-slate-700 whitespace-nowrap font-mono">
-                      {formatThaiTime(r.recordedAt)}
+                    <td className="py-3 px-4 text-slate-700 whitespace-nowrap font-mono font-medium">
+                      {formatThaiTime(r)}
                     </td>
                     <td className="py-3 px-4 font-mono text-slate-600">
                       {isNaN(latVal) ? '-' : latVal.toFixed(4)}

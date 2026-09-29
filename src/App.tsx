@@ -74,11 +74,20 @@ export default function App() {
     exportToCSV(records, `hornbill-tracking-${latestRecord?.assetId || 'KKOZ01'}.csv`);
   };
 
-  const handleFocusOnMap = () => {
-    if (latestRecord) {
-      setSelectedRecord(latestRecord);
+  const handleSelectRecord = (r: TrackingRecord) => {
+    setSelectedRecord(r);
+    // If on mobile or smaller screen, scroll smoothly to map
+    const mapElement = document.getElementById('tracking-map-container');
+    if (mapElement && window.innerWidth < 1024) {
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    // If on mobile, scroll smoothly to map
+  };
+
+  const handleResetToLatest = () => {
+    setSelectedRecord(null);
+  };
+
+  const handleFocusActiveOnMap = () => {
     const mapElement = document.getElementById('tracking-map-container');
     if (mapElement) {
       mapElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -102,7 +111,7 @@ export default function App() {
           onRefresh={() => fetchData()}
           isLoading={isLoading}
           onExportCSV={handleExportCSV}
-          lastUpdatedTime={formatThaiDateTime(lastUpdated.toISOString())}
+          lastUpdatedTime={formatThaiDateTime(latestRecord?.localTime || latestRecord?.displayTime || latestRecord?.recordedAt || lastUpdated.toISOString())}
           onToggleMobileMenu={() => setIsMobileDrawerOpen(true)}
         />
 
@@ -128,7 +137,11 @@ export default function App() {
           {currentTab === 'dashboard' && (
             <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
               {/* 4 Top KPI Metric Cards */}
-              <MetricCards latest={latestRecord} recordsCount={records.length} />
+              <MetricCards
+                latest={latestRecord}
+                activeRecord={selectedRecord || latestRecord}
+                recordsCount={records.length}
+              />
 
               {/* Middle Section: Map (Left) + Latest Details (Right) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
@@ -140,14 +153,16 @@ export default function App() {
                     records={records}
                     latestRecord={latestRecord}
                     selectedRecord={selectedRecord}
-                    onSelectRecord={(r) => setSelectedRecord(r)}
+                    onSelectRecord={handleSelectRecord}
                     className="flex-1 w-full h-full"
                   />
                 </div>
                 <div className="lg:col-span-4 flex flex-col h-full">
                   <LatestDetailCard
                     latest={latestRecord}
-                    onFocusOnMap={handleFocusOnMap}
+                    activeRecord={selectedRecord || latestRecord}
+                    onFocusOnMap={handleFocusActiveOnMap}
+                    onResetToLatest={handleResetToLatest}
                   />
                 </div>
               </div>
@@ -156,10 +171,7 @@ export default function App() {
               <HistoryTable
                 records={records}
                 selectedRecord={selectedRecord}
-                onSelectRecord={(r) => {
-                  setSelectedRecord(r);
-                  handleFocusOnMap();
-                }}
+                onSelectRecord={handleSelectRecord}
                 onExportCSV={handleExportCSV}
               />
             </div>

@@ -5,42 +5,110 @@ const THAI_MONTHS_SHORT = [
   'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
 ];
 
-export function formatThaiDate(dateString?: string): string {
-  if (!dateString) return '-';
-  try {
-    const d = new Date(dateString.replace(' ', 'T'));
-    if (isNaN(d.getTime())) {
-      // try parsing directly
-      return dateString;
-    }
-    const day = d.getDate();
-    const month = THAI_MONTHS_SHORT[d.getMonth()];
-    const yearThai = d.getFullYear() + 543;
-    return `${day} ${month} ${yearThai}`;
-  } catch {
-    return dateString;
+/**
+ * Resolves the primary date-time string from a record or string.
+ * Priority: localTime > displayTime > recordedAt > raw input
+ */
+function resolveDateTimeString(input?: string | TrackingRecord | null): string {
+  if (!input) return '';
+  if (typeof input === 'object') {
+    return input.localTime || input.displayTime || input.recordedAt || '';
   }
+  return String(input);
 }
 
-export function formatThaiTime(dateString?: string): string {
-  if (!dateString) return '-';
-  try {
-    const d = new Date(dateString.replace(' ', 'T'));
-    if (isNaN(d.getTime())) {
-      return dateString;
-    }
-    const hours = d.getHours().toString().padStart(2, '0');
-    const minutes = d.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes} น.`;
-  } catch {
-    return dateString;
-  }
+interface ParsedDateTimeParts {
+  date: string;
+  time: string;
+  hours: string;
+  minutes: string;
 }
 
-export function formatThaiDateTime(dateString?: string): string {
-  if (!dateString) return '-';
-  const date = formatThaiDate(dateString);
-  const time = formatThaiTime(dateString);
+function parseDateTimeParts(input?: string | TrackingRecord | null): ParsedDateTimeParts | null {
+  const raw = resolveDateTimeString(input).trim();
+  if (!raw) return null;
+
+  // 1. ISO format: '2026-09-29T05:13:08Z' or '2026-09-29 08:15:26'
+  const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (isoMatch) {
+    const y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10);
+    const d = parseInt(isoMatch[3], 10);
+    const hh = String(parseInt(isoMatch[4], 10)).padStart(2, '0');
+    const mm = String(parseInt(isoMatch[5], 10)).padStart(2, '0');
+    const month = THAI_MONTHS_SHORT[m - 1] || String(m);
+    const yearThai = y + 543;
+    return {
+      date: `${d} ${month} ${yearThai}`,
+      time: `${hh}:${mm} น.`,
+      hours: hh,
+      minutes: mm,
+    };
+  }
+
+  // 2. Display format: '9/29/2026 5:13:08 AM' or '09/25/2026 5:35:47 PM'
+  const displayMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+  if (displayMatch) {
+    const m = parseInt(displayMatch[1], 10);
+    const d = parseInt(displayMatch[2], 10);
+    const y = parseInt(displayMatch[3], 10);
+    let h = parseInt(displayMatch[4], 10);
+    const mm = String(parseInt(displayMatch[5], 10)).padStart(2, '0');
+    const ampm = displayMatch[7] ? displayMatch[7].toUpperCase() : null;
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    const hh = String(h).padStart(2, '0');
+    const month = THAI_MONTHS_SHORT[m - 1] || String(m);
+    const yearThai = y + 543;
+    return {
+      date: `${d} ${month} ${yearThai}`,
+      time: `${hh}:${mm} น.`,
+      hours: hh,
+      minutes: mm,
+    };
+  }
+
+  // Fallback to Date object parsing
+  try {
+    const d = new Date(raw.replace(' ', 'T'));
+    if (!isNaN(d.getTime())) {
+      const day = d.getDate();
+      const month = THAI_MONTHS_SHORT[d.getMonth()];
+      const yearThai = d.getFullYear() + 543;
+      const hh = d.getHours().toString().padStart(2, '0');
+      const mm = d.getMinutes().toString().padStart(2, '0');
+      return {
+        date: `${day} ${month} ${yearThai}`,
+        time: `${hh}:${mm} น.`,
+        hours: hh,
+        minutes: mm,
+      };
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
+export function formatThaiDate(input?: string | TrackingRecord | null): string {
+  if (!input) return '-';
+  const parts = parseDateTimeParts(input);
+  if (parts) return parts.date;
+  return typeof input === 'string' ? input : '-';
+}
+
+export function formatThaiTime(input?: string | TrackingRecord | null): string {
+  if (!input) return '-';
+  const parts = parseDateTimeParts(input);
+  if (parts) return parts.time;
+  return typeof input === 'string' ? input : '-';
+}
+
+export function formatThaiDateTime(input?: string | TrackingRecord | null): string {
+  if (!input) return '-';
+  const date = formatThaiDate(input);
+  const time = formatThaiTime(input);
   return `${date} ${time}`;
 }
 
@@ -92,8 +160,9 @@ export function exportToCSV(records: TrackingRecord[], filename = 'hornbill-trac
   const headers = [
     'ลำดับ',
     'รหัสติดตาม',
-    'วันที่-เวลา (RecordedAt)',
+    'เวลาท้องถิ่น (Local Time)',
     'วันที่-เวลาแสดงผล (DisplayTime)',
+    'วันที่-เวลาที่บันทึก (RecordedAt)',
     'ละติจูด (Latitude)',
     'ลองจิจูด (Longitude)',
     'ระดับแบตเตอรี่ (%)',
@@ -105,8 +174,9 @@ export function exportToCSV(records: TrackingRecord[], filename = 'hornbill-trac
   const rows = records.map((r, index) => [
     index + 1,
     `"${r.assetId || ''}"`,
+    `"${r.localTime || ''}"`,
+    `"${r.displayTime || ''}"`,
     `"${r.recordedAt || ''}"`,
-    `"${r.displayTime || r.localTime || ''}"`,
     r.latitude,
     r.longitude,
     r.battery,

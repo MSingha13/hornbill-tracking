@@ -58,6 +58,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const latestMarkerRef = useRef<L.Marker | null>(null);
+  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
 
   const [activeLayerId, setActiveLayerId] = useState<string>('osm');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
@@ -144,6 +145,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
 
     const layerGroup = layerGroupRef.current;
     layerGroup.clearLayers();
+    markersMapRef.current.clear();
 
     if (!records || records.length === 0) return;
 
@@ -194,7 +196,9 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       const isSelected =
         selectedRecord?.positionId === point.record.positionId ||
         (selectedRecord?.recordedAt === point.record.recordedAt &&
-          selectedRecord?.latitude === point.record.latitude);
+          String(selectedRecord?.latitude) === String(point.record.latitude));
+
+      const markerKey = point.record.positionId || `${point.record.recordedAt}-${point.lat}`;
 
       if (isLatest) {
         // 1. Add Signal Coverage / Accuracy Circle on the map
@@ -208,24 +212,21 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         }).addTo(layerGroup);
 
         // 2. Latest Location Marker:
-        // Features:
-        // - Floating speech bubble callout pointing directly DOWN
-        // - Multiple concentric pulsing radar waves (จุดวงกลมสัญญาณเรดาร์)
-        // - Great Hornbill circular avatar
-        // - Center target bullseye dot & pin pointer directly at coordinate
         const latestIcon = L.divIcon({
           className: 'custom-hornbill-marker',
           html: `
             <div class="relative flex flex-col items-center pointer-events-auto" style="transform: translate(-50%, -100px); width: 180px;">
               <!-- Pointer Callout Bubble (ชี้ตำแหน่ง) -->
-              <div class="pointer-callout animate-float-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200/90 shadow-lg flex flex-col items-center text-center">
+              <div class="pointer-callout animate-float-pointer bg-white px-3 py-1.5 rounded-xl border ${
+                isSelected ? 'border-amber-400 ring-4 ring-amber-300 shadow-xl' : 'border-slate-200/90 shadow-lg'
+              } flex flex-col items-center text-center">
                 <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 animate-pulse'}"></span>
                   <span class="font-extrabold text-xs text-slate-900 tracking-tight">${point.record.assetId || 'KKOZ01'}</span>
                   <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">ตำแหน่งล่าสุด</span>
                 </div>
-                <div class="text-[10px] text-slate-500 font-mono mt-0.5">
-                  ${formatThaiTime(point.record.recordedAt)} • ${point.record.battery || '80'}%
+                <div class="text-[10px] text-slate-600 font-mono mt-0.5">
+                  ${formatThaiTime(point.record)} • ${point.record.battery || '80'}%
                 </div>
               </div>
 
@@ -257,6 +258,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
 
         const marker = L.marker([point.lat, point.lng], { icon: latestIcon, zIndexOffset: 1000 });
         latestMarkerRef.current = marker;
+        markersMapRef.current.set(markerKey, marker);
 
         marker.bindPopup(`
           <div class="p-3.5 max-w-xs text-slate-800">
@@ -271,8 +273,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
               </div>
             </div>
             <div class="space-y-1.5 text-xs">
-              <div class="flex justify-between"><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record.recordedAt)}</span></div>
-              <div class="flex justify-between"><span class="text-slate-500">เวลา:</span> <span class="font-medium">${formatThaiTime(point.record.recordedAt)}</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record)}</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">เวลา (Local Time):</span> <span class="font-bold text-emerald-800 font-mono">${formatThaiTime(point.record)}</span></div>
               <div class="flex justify-between"><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLatitude(point.lat)}</span></div>
               <div class="flex justify-between"><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLongitude(point.lng)}</span></div>
               <div class="flex justify-between"><span class="text-slate-500">ระดับแบตเตอรี่:</span> <span class="font-semibold text-emerald-600">${point.record.battery}%</span></div>
@@ -289,31 +291,46 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         marker.addTo(layerGroup);
       } else {
         // Intermediate waypoints
-        const waypointIcon = L.divIcon({
-          className: 'custom-waypoint-marker',
-          html: `
-            <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform hover:scale-125">
-              <div class="w-6 h-6 rounded-full border-2 ${
-                isSelected
-                  ? 'border-amber-500 bg-amber-400 scale-125 ring-4 ring-amber-300'
-                  : 'border-emerald-600 bg-white'
-              } shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800">
+        const waypointHtml = isSelected
+          ? `
+            <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="transform: translate(-50%, -100%);">
+              <div class="bg-amber-500 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 mb-1 animate-bounce">
+                <span>📍 จุดที่ ${seqIndex + 1}</span>
+              </div>
+              <div class="w-8 h-8 rounded-full border-2 border-white bg-amber-500 ring-4 ring-amber-400/80 shadow-2xl flex items-center justify-center text-xs font-black text-white">
                 ${seqIndex + 1}
               </div>
             </div>
-          `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
+          `
+          : `
+            <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform hover:scale-125">
+              <div class="w-6 h-6 rounded-full border-2 border-emerald-600 bg-white shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800">
+                ${seqIndex + 1}
+              </div>
+            </div>
+          `;
+
+        const waypointIcon = L.divIcon({
+          className: 'custom-waypoint-marker',
+          html: waypointHtml,
+          iconSize: isSelected ? [32, 54] : [24, 24],
+          iconAnchor: isSelected ? [16, 54] : [12, 12],
         });
 
-        const marker = L.marker([point.lat, point.lng], { icon: waypointIcon });
+        const marker = L.marker([point.lat, point.lng], { icon: waypointIcon, zIndexOffset: isSelected ? 900 : 100 });
+        markersMapRef.current.set(markerKey, marker);
+
         marker.bindPopup(`
           <div class="p-3 max-w-xs text-slate-800">
-            <div class="font-bold text-sm text-slate-900 mb-1">จุดที่ ${seqIndex + 1}: ${point.record.assetId || 'KKOZ01'}</div>
+            <div class="font-bold text-sm text-slate-900 mb-1 flex items-center gap-1.5">
+              <span>จุดที่ ${seqIndex + 1}: ${point.record.assetId || 'KKOZ01'}</span>
+              ${isSelected ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.2 rounded-full">จุดที่เลือก</span>' : ''}
+            </div>
             <div class="space-y-1 text-xs">
-              <div><span class="text-slate-500">เวลา:</span> <span class="font-medium">${formatThaiDate(point.record.recordedAt)} ${formatThaiTime(point.record.recordedAt)}</span></div>
-              <div><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono">${formatLatitude(point.lat)}</span></div>
-              <div><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono">${formatLongitude(point.lng)}</span></div>
+              <div><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record)}</span></div>
+              <div><span class="text-slate-500">เวลา (Local Time):</span> <span class="font-bold text-emerald-800 font-mono">${formatThaiTime(point.record)}</span></div>
+              <div><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLatitude(point.lat)}</span></div>
+              <div><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono text-emerald-700 font-semibold">${formatLongitude(point.lng)}</span></div>
               <div><span class="text-slate-500">แบตเตอรี่:</span> ${point.record.battery}% | ${point.record.temperature} °C</div>
               ${point.record.address ? `<div class="mt-1 text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded">${point.record.address}</div>` : ''}
             </div>
@@ -331,17 +348,24 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       const bounds = L.latLngBounds(latLngs);
       mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
     }
-  }, [records, activeLayerId]);
+  }, [records, activeLayerId, selectedRecord]);
 
-  // Center on Selected Record
+  // Center and open popup on Selected Record
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedRecord) return;
     const lat = parseFloat(String(selectedRecord.latitude));
     const lng = parseFloat(String(selectedRecord.longitude));
     if (!isNaN(lat) && !isNaN(lng)) {
-      mapInstanceRef.current.flyTo([lat, lng], 14, {
-        duration: 1.2,
+      mapInstanceRef.current.flyTo([lat, lng], 15, {
+        duration: 0.9,
       });
+      const key = selectedRecord.positionId || `${selectedRecord.recordedAt}-${lat}`;
+      const marker = markersMapRef.current.get(key);
+      if (marker) {
+        setTimeout(() => {
+          marker.openPopup();
+        }, 350);
+      }
     }
   }, [selectedRecord]);
 

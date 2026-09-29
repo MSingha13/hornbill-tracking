@@ -1,7 +1,14 @@
 import React from 'react';
 import { hornbillIcon, forestBg } from '../assets/assets';
 import { Home, Map, Feather, Leaf, X, Award } from 'lucide-react';
-import { GistdaLogo, BsrcLogo, KhaoKheowZooLogo } from './PartnerLogos';
+import {
+  GistdaLogo,
+  BsrcLogo,
+  KhaoKheowZooLogo,
+  ZpoLogo,
+  DnpLogo,
+  HrfLogo,
+} from './PartnerLogos';
 
 interface SidebarProps {
   currentTab: string;
@@ -84,21 +91,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Collaborative Partners: GISTDA, BSRC, Khao Kheow Zoo */}
-        <div className="mt-7 pt-5 border-t border-emerald-900/60">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-2.5">
+        {/* Collaborative Partners */}
+        <div className="mt-5 pt-4 border-t border-emerald-900/60">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-2">
             <Award className="w-3.5 h-3.5 text-amber-400" />
             <span>ภาคีความร่วมมือ</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
               <GistdaLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
             </div>
             <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
               <BsrcLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
             </div>
-            <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
-              <KhaoKheowZooLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
+                <KhaoKheowZooLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
+              </div>
+              <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
+                <ZpoLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
+                <DnpLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
+              </div>
+              <div className="bg-white/95 rounded-xl p-1 shadow-sm hover:bg-white transition-all">
+                <HrfLogo size="sm" className="w-full !border-0 !shadow-none justify-center" />
+              </div>
             </div>
           </div>
         </div>

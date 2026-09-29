@@ -1,20 +1,27 @@
 import React from 'react';
 import { TrackingRecord } from '../types/tracking';
-import { formatCoordinates, formatLatitude, formatLongitude } from '../utils/formatters';
+import { formatLatitude, formatLongitude } from '../utils/formatters';
 import { hornbillIcon } from '../assets/assets';
 import { MapPin, BatteryCharging, Thermometer, Zap, BarChart2 } from 'lucide-react';
 
 interface MetricCardsProps {
   latest?: TrackingRecord;
+  activeRecord?: TrackingRecord | null;
   recordsCount: number;
 }
 
-export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }) => {
-  const assetId = latest?.assetId || 'KKOZ01';
-  const coordsFormatted = formatCoordinates(latest?.latitude, latest?.longitude);
-  const address = latest?.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง';
-  const batteryNum = latest?.battery ? parseFloat(String(latest?.battery)) : 81.25;
-  const tempNum = latest?.temperature ? parseFloat(String(latest?.temperature)) : 15.5;
+export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, recordsCount }) => {
+  const current = activeRecord || latest;
+  const isSelectedHistorical = Boolean(
+    activeRecord &&
+    latest &&
+    (activeRecord.positionId ? activeRecord.positionId !== latest.positionId : activeRecord.recordedAt !== latest.recordedAt)
+  );
+
+  const assetId = current?.assetId || 'KKOZ01';
+  const address = current?.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง';
+  const batteryNum = current?.battery ? parseFloat(String(current.battery)) : 81.25;
+  const tempNum = current?.temperature ? parseFloat(String(current.temperature)) : 15.5;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
@@ -29,8 +36,11 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }
           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            รหัสติดตาม
+          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+            <span>รหัสติดตาม</span>
+            <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+              {recordsCount} จุด
+            </span>
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight truncate">
             {assetId}
@@ -41,23 +51,33 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, recordsCount }
         </div>
       </div>
 
-      {/* Card 2: Latest Location */}
-      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-3.5">
-        <div className="flex-shrink-0 w-13 h-13 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+      {/* Card 2: Location (Latest vs Selected) */}
+      <div className={`bg-white rounded-2xl p-3.5 sm:p-4 border shadow-xs hover:shadow-md transition-all flex items-center gap-3 sm:gap-3.5 ${
+        isSelectedHistorical ? 'border-amber-400 ring-2 ring-amber-200/50' : 'border-slate-200/80'
+      }`}>
+        <div className={`flex-shrink-0 w-13 h-13 rounded-2xl text-white flex items-center justify-center shadow-md ${
+          isSelectedHistorical ? 'bg-amber-500 shadow-amber-500/20' : 'bg-blue-500 shadow-blue-500/20'
+        }`}>
           <MapPin className="w-6 h-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            ตำแหน่งล่าสุด
+          <div className="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+            {isSelectedHistorical ? (
+              <span className="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                พิกัดที่เลือกในตาราง
+              </span>
+            ) : (
+              <span className="text-slate-400">ตำแหน่งล่าสุด</span>
+            )}
           </div>
           <div className="font-mono text-slate-900 tracking-tight leading-tight mt-0.5">
             <div className="text-sm sm:text-base font-bold flex items-center gap-1">
               <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lat</span>
-              <span>{latest?.latitude ? formatLatitude(latest.latitude) : '17.3345° N'}</span>
+              <span>{current?.latitude ? formatLatitude(current.latitude) : '17.3345° N'}</span>
             </div>
             <div className="text-sm sm:text-base font-bold flex items-center gap-1">
               <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lng</span>
-              <span>{latest?.longitude ? formatLongitude(latest.longitude) : '98.9752° E'}</span>
+              <span>{current?.longitude ? formatLongitude(current.longitude) : '98.9752° E'}</span>
             </div>
           </div>
           <div className="text-xs text-slate-500 truncate mt-1" title={address}>
