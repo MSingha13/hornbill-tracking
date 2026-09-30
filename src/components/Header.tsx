@@ -63,16 +63,16 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Quick Refresh on mobile right header (Manual update) */}
+        {/* Quick Refresh on mobile right header (Manual update via updateSportdata) */}
         <div className="md:hidden flex items-center gap-1.5">
           <button
             onClick={onRefresh}
             disabled={isLoading}
             className="px-2.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl shadow-xs transition-all disabled:opacity-70 active:scale-95 flex items-center gap-1.5 text-xs font-medium"
-            title={`คลิกเพื่ออัปเดตข้อมูลล่าสุด (อัปเดตล่าสุด: ${lastUpdatedTime})`}
+            title={`คลิกเพื่อรันคำสั่ง updateSportdata บน Google Apps Script Sheet ดึงข้อมูลดาวเทียมล่าสุด (อัปเดตล่าสุด: ${lastUpdatedTime})`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>อัปเดต</span>
+            <span>{isLoading ? 'อัปเดต...' : 'อัปเดต'}</span>
           </button>
         </div>
       </div>
@@ -91,10 +91,10 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onRefresh}
           disabled={isLoading}
           className="hidden md:flex items-center gap-2 px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-xl shadow-xs transition-all disabled:opacity-70 active:scale-95 flex-shrink-0"
-          title={`คลิกเพื่ออัปเดตข้อมูลล่าสุด (อัปเดตล่าสุด: ${lastUpdatedTime})`}
+          title={`คลิกเพื่อรันคำสั่ง updateSportdata บน Google Apps Script Sheet ดึงข้อมูลดาวเทียมล่าสุด (อัปเดตล่าสุด: ${lastUpdatedTime})`}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>อัปเดตข้อมูล</span>
+          <span>{isLoading ? 'กำลังอัปเดต (updateSportdata)...' : 'อัปเดตข้อมูล'}</span>
         </button>
 
         {/* Export CSV Button */}

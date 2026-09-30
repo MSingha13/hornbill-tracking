@@ -25,3 +25,4 @@ export const hornbillFlightCanopy = hornbillFlightCanopyImg;
 export const hornbillCasqueCloseup = hornbillCasqueCloseupImg;
 
 export const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwZPgebby-VcBqA_y089FfcuzT-RuAwqeaMEUDx4X6uKLT5SvZ4yKVXbXSK-TZaQZaljg/exec';
+export const SCRIPT_UPDATE_ACTION = 'updateSportdata';

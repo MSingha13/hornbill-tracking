@@ -19,9 +19,9 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
   );
 
   const assetId = current?.assetId || 'KKOZ01';
-  const address = current?.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง';
-  const batteryNum = current?.battery ? parseFloat(String(current.battery)) : 81.25;
-  const tempNum = current?.temperature ? parseFloat(String(current.temperature)) : 15.5;
+  const address = current?.address || '-';
+  const batteryNum = current?.battery !== undefined && current?.battery !== '' ? parseFloat(String(current.battery)) : null;
+  const tempNum = current?.temperature !== undefined && current?.temperature !== '' ? parseFloat(String(current.temperature)) : null;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
@@ -73,11 +73,11 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
           <div className="font-mono text-slate-900 tracking-tight leading-tight mt-0.5">
             <div className="text-sm sm:text-base font-bold flex items-center gap-1">
               <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lat</span>
-              <span>{current?.latitude ? formatLatitude(current.latitude) : '17.3345° N'}</span>
+              <span>{current?.latitude ? formatLatitude(current.latitude) : '-'}</span>
             </div>
             <div className="text-sm sm:text-base font-bold flex items-center gap-1">
               <span className="text-[10px] font-medium text-slate-400 font-sans uppercase">Lng</span>
-              <span>{current?.longitude ? formatLongitude(current.longitude) : '98.9752° E'}</span>
+              <span>{current?.longitude ? formatLongitude(current.longitude) : '-'}</span>
             </div>
           </div>
           <div className="text-xs text-slate-500 truncate mt-1" title={address}>
@@ -96,15 +96,21 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
             ระดับแบตเตอรี่
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight flex items-baseline gap-1.5">
-            <span>{batteryNum.toFixed(2)}%</span>
-            <span className="text-[11px] font-medium text-emerald-600">ปกติ</span>
+            <span>{batteryNum !== null && !isNaN(batteryNum) ? `${batteryNum.toFixed(2)}%` : '-'}</span>
+            {batteryNum !== null && !isNaN(batteryNum) && (
+              <span className="text-[11px] font-medium text-emerald-600">ปกติ</span>
+            )}
           </div>
           <div className="mt-1 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                batteryNum > 50 ? 'bg-emerald-500' : batteryNum > 20 ? 'bg-amber-500' : 'bg-rose-500'
+                batteryNum !== null && batteryNum > 50
+                  ? 'bg-emerald-500'
+                  : batteryNum !== null && batteryNum > 20
+                  ? 'bg-amber-500'
+                  : 'bg-rose-500'
               }`}
-              style={{ width: `${Math.min(100, Math.max(5, batteryNum))}%` }}
+              style={{ width: `${Math.min(100, Math.max(5, batteryNum || 0))}%` }}
             ></div>
           </div>
         </div>
@@ -121,11 +127,10 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
             อุณหภูมิอุปกรณ์
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight flex items-baseline gap-1">
-            <span>{tempNum.toFixed(2)}</span>
-            <span className="text-sm font-semibold text-slate-600">°C</span>
-          </div>
-          <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-            <span>สภาพอากาศป่าดิบเขา</span>
+            <span>{tempNum !== null && !isNaN(tempNum) ? tempNum.toFixed(2) : '-'}</span>
+            {tempNum !== null && !isNaN(tempNum) && (
+              <span className="text-sm font-semibold text-slate-600">°C</span>
+            )}
           </div>
         </div>
         <BarChart2 className="absolute -right-1 -bottom-1 w-14 h-14 text-amber-500/10 pointer-events-none" />

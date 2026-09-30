@@ -28,15 +28,15 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
   const dateStr = formatThaiDate(current);
   const timeStr = formatThaiTime(current);
 
-  const latNum = current?.latitude ? parseFloat(String(current.latitude)) : 17.3345;
-  const lngNum = current?.longitude ? parseFloat(String(current.longitude)) : 98.9752;
+  const latNum = current?.latitude !== undefined && current?.latitude !== '' ? parseFloat(String(current.latitude)) : null;
+  const lngNum = current?.longitude !== undefined && current?.longitude !== '' ? parseFloat(String(current.longitude)) : null;
 
-  const latFormatted = `${Math.abs(latNum).toFixed(4)}° ${latNum >= 0 ? 'N' : 'S'}`;
-  const lngFormatted = `${Math.abs(lngNum).toFixed(4)}° ${lngNum >= 0 ? 'E' : 'W'}`;
+  const latFormatted = latNum !== null && !isNaN(latNum) ? `${Math.abs(latNum).toFixed(4)}° ${latNum >= 0 ? 'N' : 'S'}` : '-';
+  const lngFormatted = lngNum !== null && !isNaN(lngNum) ? `${Math.abs(lngNum).toFixed(4)}° ${lngNum >= 0 ? 'E' : 'W'}` : '-';
 
-  const address = current?.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง';
-  const batteryNum = current?.battery ? parseFloat(String(current.battery)) : 81.25;
-  const tempNum = current?.temperature ? parseFloat(String(current.temperature)) : 15.5;
+  const address = current?.address || '-';
+  const batteryNum = current?.battery !== undefined && current?.battery !== '' ? parseFloat(String(current.battery)) : null;
+  const tempNum = current?.temperature !== undefined && current?.temperature !== '' ? parseFloat(String(current.temperature)) : null;
 
   return (
     <div className={`bg-white rounded-2xl p-4 lg:p-5 border shadow-xs flex flex-col justify-between transition-all ${
@@ -161,13 +161,17 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
               <span>ระดับแบตเตอรี่</span>
             </span>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 font-mono">{batteryNum.toFixed(2)}%</span>
-              <div className="w-14 bg-slate-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-full rounded-full"
-                  style={{ width: `${Math.min(100, batteryNum)}%` }}
-                ></div>
-              </div>
+              <span className="font-bold text-slate-900 font-mono">
+                {batteryNum !== null && !isNaN(batteryNum) ? `${batteryNum.toFixed(2)}%` : '-'}
+              </span>
+              {batteryNum !== null && !isNaN(batteryNum) && (
+                <div className="w-14 bg-slate-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full"
+                    style={{ width: `${Math.min(100, batteryNum)}%` }}
+                  ></div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -177,7 +181,9 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
               <Thermometer className="w-3.5 h-3.5 text-amber-500" />
               <span>อุณหภูมิอุปกรณ์</span>
             </span>
-            <span className="font-bold text-slate-900 font-mono">{tempNum.toFixed(2)} °C</span>
+            <span className="font-bold text-slate-900 font-mono">
+              {tempNum !== null && !isNaN(tempNum) ? `${tempNum.toFixed(2)} °C` : '-'}
+            </span>
           </div>
         </div>
       </div>

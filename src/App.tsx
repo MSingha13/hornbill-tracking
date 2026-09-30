@@ -14,9 +14,8 @@ import { ReportsView } from './components/ReportsView';
 import { SpeciesInfoView } from './components/SpeciesInfoView';
 import { TrackingRecord, TrackingApiResponse } from './types/tracking';
 import { exportToCSV, formatThaiDateTime } from './utils/formatters';
-import { THAI_PARKS_DEMO_DATA } from './data/mockThaiData';
-import { API_ENDPOINT } from './assets/assets';
-import { Home, Map, Feather, AlertCircle, Menu } from 'lucide-react';
+import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
+import { Home, Map, Feather, AlertCircle, CheckCircle2, Menu } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -27,14 +26,20 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
-  // Fetch tracking data (Manual update on trigger or initial load)
-  const fetchData = useCallback(async () => {
+  // Fetch tracking data: triggers updateSportdata in Google Apps Script Sheet
+  const fetchData = useCallback(async (isManualTrigger = false) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(API_ENDPOINT, {
+      // Calls Google Apps Script Web App with action=updateSportdata to pull fresh satellite data
+      const url = `${API_ENDPOINT}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
@@ -51,15 +56,24 @@ export default function App() {
         setRecords(data.records || []);
         setLatestRecord(data.latest || (data.records && data.records[0]));
         setLastUpdated(new Date());
+
+        if (isManualTrigger) {
+          const count = data.records?.length || 0;
+          setSyncStatus({
+            type: 'success',
+            message: `สั่งการ Google Apps Script (updateSportdata) สำเร็จ! ข้อมูลดาวเทียมอัปเดตลงตารางแล้ว (รวม ${count} จุด)`,
+          });
+          setTimeout(() => {
+            setSyncStatus(null);
+          }, 5000);
+        }
       } else {
-        throw new Error(data.message || 'ไม่สามารถดึงข้อมูลจากสัญญาณ GlobalStar ได้');
+        throw new Error(data?.message || 'ไม่สามารถดึงข้อมูลจากสัญญาณ GlobalStar ได้');
       }
-    } catch (err) {
-      console.warn('Signal fetch issue, using fallback data:', err);
-      setError('ไม่สามารถเชื่อมต่อสัญญาณ GlobalStar ชั่วคราว ใช้ข้อมูลสำรอง');
-      // If error occurs, fall back gracefully
-      setRecords(THAI_PARKS_DEMO_DATA.records);
-      setLatestRecord(THAI_PARKS_DEMO_DATA.latest);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+      console.warn('Signal fetch issue:', err);
+      setError(`ไม่สามารถเชื่อมต่อสัญญาณดาวเทียมได้ (${msg}) กรุณากดลองใหม่`);
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +122,7 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Header */}
         <Header
-          onRefresh={() => fetchData()}
+          onRefresh={() => fetchData(true)}
           isLoading={isLoading}
           onExportCSV={handleExportCSV}
           lastUpdatedTime={formatThaiDateTime(latestRecord?.localTime || latestRecord?.displayTime || latestRecord?.recordedAt || lastUpdated.toISOString())}
@@ -117,6 +131,22 @@ export default function App() {
 
         {/* Scrollable Main Body */}
         <main className="flex-1 overflow-y-auto p-2.5 sm:p-4 lg:p-6 pb-24 sm:pb-28 lg:pb-6">
+          {/* Sync Success Notification Banner */}
+          {syncStatus && (
+            <div className="mb-3 sm:mb-4 bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs px-3 sm:px-4 py-2.5 rounded-xl flex items-center justify-between shadow-xs animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span className="font-semibold">{syncStatus.message}</span>
+              </div>
+              <button
+                onClick={() => setSyncStatus(null)}
+                className="text-emerald-700 hover:text-emerald-950 font-bold ml-2 text-xs px-1.5 py-0.5 rounded hover:bg-emerald-100"
+              >
+                ✕ ปิด
+              </button>
+            </div>
+          )}
+
           {/* Error Banner if any */}
           {error && (
             <div className="mb-3 sm:mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 sm:px-4 py-2.5 rounded-xl flex items-center justify-between">
@@ -125,7 +155,7 @@ export default function App() {
                 <span>{error}</span>
               </div>
               <button
-                onClick={() => fetchData()}
+                onClick={() => fetchData(true)}
                 className="underline hover:text-amber-950 font-semibold ml-2"
               >
                 ลองใหม่

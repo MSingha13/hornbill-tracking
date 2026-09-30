@@ -138,8 +138,8 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-700 mb-2 line-clamp-2" title={r.address}>
-                  📍 {r.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง'}
+                <div className="text-xs text-slate-700 mb-2 line-clamp-2" title={r.address || '-'}>
+                  📍 {r.address || '-'}
                 </div>
 
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/80 text-[11px]">
@@ -249,7 +249,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                       {isNaN(lngVal) ? '-' : lngVal.toFixed(4)}
                     </td>
                     <td className="py-3 px-4 text-slate-700 max-w-xs truncate" title={r.address || '-'}>
-                      {r.address || 'อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง'}
+                      {r.address || '-'}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
