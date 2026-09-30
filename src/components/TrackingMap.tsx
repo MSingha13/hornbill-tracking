@@ -204,59 +204,50 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       const markerKey = point.record.positionId || `${point.record.recordedAt}-${point.lat}`;
 
       if (isLatest) {
-        // 1. Add Signal Coverage / Accuracy Circle on the map
+        // 1. Subtle ground circle around latest point (วงกลมรัศมีขนาดเล็ก 25 เมตร ไม่บังจุดอื่น)
         L.circle([point.lat, point.lng], {
-          radius: 1200, // meters
+          radius: 25,
           color: '#059669',
           weight: 1.5,
-          dashArray: '5, 5',
+          dashArray: '3, 3',
           fillColor: '#10b981',
-          fillOpacity: 0.08,
+          fillOpacity: 0.15,
         }).addTo(layerGroup);
 
-        // 2. Latest Location Marker:
-        const latestIcon = L.divIcon({
-          className: 'custom-hornbill-marker',
-          html: `
-            <div class="relative flex flex-col items-center pointer-events-auto" style="transform: translate(-50%, -100px); width: 180px;">
-              <!-- Pointer Callout Bubble (ชี้ตำแหน่ง) -->
-              <div class="pointer-callout animate-float-pointer bg-white px-3 py-1.5 rounded-xl border ${
-                isSelected ? 'border-amber-400 ring-4 ring-amber-300 shadow-xl' : 'border-slate-200/90 shadow-lg'
-              } flex flex-col items-center text-center">
-                <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 animate-pulse'}"></span>
-                  <span class="font-extrabold text-xs text-slate-900 tracking-tight">${point.record.assetId || 'KKOZ01'}</span>
-                  <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">ตำแหน่งล่าสุด</span>
-                </div>
-                <div class="text-[10px] text-slate-600 font-mono mt-0.5">
-                  ${formatThaiTime(point.record)} • ${point.record.battery || '80'}%
-                </div>
-              </div>
-
-              <!-- Connecting stem / pointer line down to target circle -->
-              <div class="w-0.5 h-3 bg-gradient-to-b from-slate-400 to-emerald-600"></div>
-
-              <!-- Concentric Radar Ripple Waves (จุดวงกลมล่าสุด) -->
-              <div class="relative w-14 h-14 flex items-center justify-center">
-                <div class="absolute inset-0 rounded-full bg-emerald-500/25 radar-wave-1 pointer-events-none"></div>
-                <div class="absolute inset-0 rounded-full bg-emerald-400/35 radar-wave-2 pointer-events-none"></div>
-                <div class="absolute inset-0 rounded-full bg-emerald-400/20 radar-wave-3 pointer-events-none"></div>
-
-                <!-- Outer Gold & Emerald Ring -->
-                <div class="relative z-10 w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-amber-400 via-emerald-400 to-emerald-600 shadow-xl ring-2 ring-white">
-                  <img
-                    src="${hornbillIcon}"
-                    alt="Hornbill"
-                    class="w-full h-full object-cover rounded-full bg-slate-900"
-                  />
-                  <!-- Pinpoint center target dot -->
-                  <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-emerald-600 border-2 border-white rounded-full shadow-md"></div>
-                </div>
+        // 2. Latest Location Marker: Clean circular point (จุดวงกลม จุดล่าสุด) with sequence number and mini badge
+        const isSelectedState = isSelected;
+        const latestHtml = `
+          <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
+            <!-- Mini Tag 'ล่าสุด' above circle -->
+            <div style="position: absolute; bottom: 100%; margin-bottom: 4px; white-space: nowrap;">
+              <div class="${
+                isSelectedState ? 'bg-amber-600 ring-2 ring-amber-300' : 'bg-emerald-700 ring-1 ring-emerald-400'
+              } text-white font-bold text-[9px] px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 leading-none">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                <span>ล่าสุด (จุดที่ ${seqIndex + 1})</span>
               </div>
             </div>
-          `,
+
+            <!-- Compact Circular Point (จุดวงกลม 28px) -->
+            <div class="relative flex items-center justify-center">
+              <div class="absolute -inset-1 rounded-full ${
+                isSelectedState ? 'bg-amber-400/40' : 'bg-emerald-500/30'
+              } animate-ping pointer-events-none"></div>
+              <div class="relative z-10 w-7 h-7 rounded-full border-2 border-white ${
+                isSelectedState ? 'bg-amber-500 ring-2 ring-amber-400 text-white' : 'bg-emerald-600 ring-2 ring-emerald-500 text-white'
+              } shadow-lg flex items-center justify-center text-xs font-black">
+                ${seqIndex + 1}
+              </div>
+            </div>
+          </div>
+        `;
+
+        const latestIcon = L.divIcon({
+          className: 'custom-hornbill-marker',
+          html: latestHtml,
           iconSize: [0, 0],
           iconAnchor: [0, 0],
+          popupAnchor: [0, -20],
         });
 
         const marker = L.marker([point.lat, point.lng], { icon: latestIcon, zIndexOffset: 1000 });
@@ -270,7 +261,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
               <div>
                 <div class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                   <span>${point.record.assetId || 'KKOZ01'}</span>
-                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">ตำแหน่งล่าสุด</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">จุดที่ ${seqIndex + 1} (ล่าสุด)</span>
                 </div>
                 <div class="text-[11px] text-emerald-600 font-medium">🛰️ สัญญาณดาวเทียม GlobalStar</div>
               </div>
@@ -296,17 +287,19 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         // Intermediate waypoints
         const waypointHtml = isSelected
           ? `
-            <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="transform: translate(-50%, -100%);">
-              <div class="bg-amber-500 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1 mb-1 animate-bounce">
-                <span>📍 จุดที่ ${seqIndex + 1}</span>
+            <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
+              <div style="position: absolute; bottom: 100%; margin-bottom: 4px; white-space: nowrap;">
+                <div class="bg-amber-500 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border border-white flex items-center gap-1 animate-bounce">
+                  <span>📍 จุดที่ ${seqIndex + 1}</span>
+                </div>
               </div>
-              <div class="w-8 h-8 rounded-full border-2 border-white bg-amber-500 ring-4 ring-amber-400/80 shadow-2xl flex items-center justify-center text-xs font-black text-white">
+              <div class="w-7 h-7 rounded-full border-2 border-white bg-amber-500 ring-2 ring-amber-400 shadow-2xl flex items-center justify-center text-xs font-black text-white">
                 ${seqIndex + 1}
               </div>
             </div>
           `
           : `
-            <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform hover:scale-125">
+            <div class="relative flex items-center justify-center cursor-pointer transition-transform hover:scale-125" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
               <div class="w-6 h-6 rounded-full border-2 border-emerald-600 bg-white shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800">
                 ${seqIndex + 1}
               </div>
@@ -316,8 +309,9 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         const waypointIcon = L.divIcon({
           className: 'custom-waypoint-marker',
           html: waypointHtml,
-          iconSize: isSelected ? [32, 54] : [24, 24],
-          iconAnchor: isSelected ? [16, 54] : [12, 12],
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+          popupAnchor: [0, -16],
         });
 
         const marker = L.marker([point.lat, point.lng], { icon: waypointIcon, zIndexOffset: isSelected ? 900 : 100 });

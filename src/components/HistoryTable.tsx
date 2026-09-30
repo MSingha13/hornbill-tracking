@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrackingRecord } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
-import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock } from 'lucide-react';
+import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, Gauge } from 'lucide-react';
 
 export interface AvailableDateOption {
   dateKey: string;
@@ -200,6 +200,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
             const tempVal = typeof r.temperature === 'number' ? r.temperature : parseFloat(String(r.temperature) || '0');
             const latVal = typeof r.latitude === 'number' ? r.latitude : parseFloat(String(r.latitude) || '0');
             const lngVal = typeof r.longitude === 'number' ? r.longitude : parseFloat(String(r.longitude) || '0');
+            const speedVal = r.speed !== undefined && r.speed !== null && r.speed !== ''
+              ? (typeof r.speed === 'number' ? r.speed : parseFloat(String(r.speed)))
+              : null;
 
             return (
               <div
@@ -239,7 +242,13 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                     <div><span className="text-[10px] text-slate-400 font-sans">Lat:</span> {isNaN(latVal) ? '-' : `${latVal.toFixed(4)}° N`}</div>
                     <div><span className="text-[10px] text-slate-400 font-sans">Lng:</span> {isNaN(lngVal) ? '-' : `${lngVal.toFixed(4)}° E`}</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {speedVal !== null && !isNaN(speedVal) && (
+                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 font-mono text-[10px] border border-sky-100">
+                        <Gauge className="w-3 h-3 text-sky-600" />
+                        {speedVal.toFixed(2)} กม./ชม.
+                      </span>
+                    )}
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
                         batteryVal > 50
@@ -291,6 +300,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               <th className="py-3 px-4">ละติจูด</th>
               <th className="py-3 px-4">ลองจิจูด</th>
               <th className="py-3 px-4">พื้นที่ / ที่อยู่</th>
+              <th className="py-3 px-4 text-center">ความเร็ว (Speed)</th>
               <th className="py-3 px-4 text-center">ระดับแบตเตอรี่</th>
               <th className="py-3 px-4 text-center">อุณหภูมิ (°C)</th>
               <th className="py-3 px-4 text-center">แผนที่</th>
@@ -299,7 +309,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
           <tbody className="divide-y divide-slate-100">
             {currentRecords.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-8 text-center text-slate-400 text-xs">
+                <td colSpan={11} className="py-8 text-center text-slate-400 text-xs">
                   ไม่พบข้อมูลพิกัดการติดตาม
                 </td>
               </tr>
@@ -313,6 +323,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                 const tempVal = typeof r.temperature === 'number' ? r.temperature : parseFloat(String(r.temperature) || '0');
                 const latVal = typeof r.latitude === 'number' ? r.latitude : parseFloat(String(r.latitude) || '0');
                 const lngVal = typeof r.longitude === 'number' ? r.longitude : parseFloat(String(r.longitude) || '0');
+                const speedVal = r.speed !== undefined && r.speed !== null && r.speed !== ''
+                  ? (typeof r.speed === 'number' ? r.speed : parseFloat(String(r.speed)))
+                  : null;
 
                 return (
                   <tr
@@ -342,6 +355,17 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                     </td>
                     <td className="py-3 px-4 text-slate-700 max-w-xs truncate" title={r.address || '-'}>
                       {r.address || '-'}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {speedVal !== null && !isNaN(speedVal) ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold bg-sky-50 text-sky-800 border border-sky-100">
+                          <Gauge className="w-3 h-3 text-sky-600" />
+                          <span>{speedVal.toFixed(2)}</span>
+                          <span className="text-[10px] text-slate-500 font-normal">กม./ชม.</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-mono">-</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
