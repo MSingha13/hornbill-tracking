@@ -8,9 +8,10 @@ interface MetricCardsProps {
   latest?: TrackingRecord;
   activeRecord?: TrackingRecord | null;
   recordsCount: number;
+  filterBadge?: string;
 }
 
-export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, recordsCount }) => {
+export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, recordsCount, filterBadge }) => {
   const current = activeRecord || latest;
   const isSelectedHistorical = Boolean(
     activeRecord &&
@@ -39,7 +40,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
             <span>รหัสติดตาม</span>
             <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-              {recordsCount} จุด
+              {recordsCount} จุด{filterBadge ? ` • ${filterBadge}` : ''}
             </span>
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight truncate">

@@ -3,8 +3,21 @@ import { TrackingRecord } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
 import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock } from 'lucide-react';
 
+export interface AvailableDateOption {
+  dateKey: string;
+  thaiDate: string;
+  count: number;
+}
+
 interface HistoryTableProps {
   records: TrackingRecord[];
+  allRecordsCount?: number;
+  latestDateText?: string;
+  filterMode?: 'five_days' | 'latest_day' | 'specific_date';
+  onToggleFilterMode?: (mode: 'five_days' | 'latest_day' | 'specific_date') => void;
+  availableDates?: AvailableDateOption[];
+  selectedDateKey?: string;
+  onSelectDateKey?: (dateKey: string) => void;
   selectedRecord?: TrackingRecord | null;
   onSelectRecord: (record: TrackingRecord) => void;
   onExportCSV: () => void;
@@ -12,6 +25,13 @@ interface HistoryTableProps {
 
 export const HistoryTable: React.FC<HistoryTableProps> = ({
   records,
+  allRecordsCount,
+  latestDateText,
+  filterMode = 'five_days',
+  onToggleFilterMode,
+  availableDates = [],
+  selectedDateKey = '',
+  onSelectDateKey,
   selectedRecord,
   onSelectRecord,
   onExportCSV,
@@ -39,7 +59,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
       {/* Table Header Bar */}
       <div className="p-3.5 sm:px-6 py-3.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center justify-between sm:justify-start gap-2">
+        <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
               <History className="w-4 h-4 text-emerald-400" />
@@ -53,6 +73,78 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               </h3>
             </div>
           </div>
+
+          {/* Date Filter Controls */}
+          {onToggleFilterMode && (
+            <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] font-medium">
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('five_days');
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === 'five_days'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัด 5 วันล่าสุด"
+              >
+                <Calendar className="w-3 h-3" />
+                <span>5 วันล่าสุด</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('latest_day');
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === 'latest_day'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัดเฉพาะวันล่าสุดที่มีการบันทึก"
+              >
+                <span>เฉพาะวันล่าสุด</span>
+              </button>
+
+              {/* Specific Date Dropdown Picker */}
+              {availableDates.length > 0 && (
+                <div className="relative flex items-center">
+                  <select
+                    value={filterMode === 'specific_date' ? selectedDateKey : ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        onSelectDateKey?.(val);
+                        onToggleFilterMode('specific_date');
+                        setCurrentPage(1);
+                      }
+                    }}
+                    className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all appearance-none cursor-pointer pr-5 ${
+                      filterMode === 'specific_date'
+                        ? 'bg-emerald-800 text-white font-bold border-emerald-800 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400'
+                    }`}
+                    title="เลือกวันที่เฉพาะเจาะจงเพื่อแสดงพิกัด"
+                  >
+                    <option value="" disabled className="text-slate-400 bg-white">
+                      📅 เลือกวันที่...
+                    </option>
+                    {availableDates.map((item) => (
+                      <option key={item.dateKey} value={item.dateKey} className="text-slate-800 bg-white">
+                        วันที่ {item.thaiDate} ({item.count} จุด)
+                      </option>
+                    ))}
+                  </select>
+                  <span className={`pointer-events-none absolute right-1.5 text-[9px] ${
+                    filterMode === 'specific_date' ? 'text-amber-200' : 'text-slate-400'
+                  }`}>▾</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quick export on mobile header */}
           <button

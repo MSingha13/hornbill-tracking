@@ -12,6 +12,7 @@ import {
   Maximize2,
   Minimize2,
   Navigation,
+  Calendar,
 } from 'lucide-react';
 
 interface TrackingMapProps {
@@ -20,6 +21,7 @@ interface TrackingMapProps {
   selectedRecord?: TrackingRecord | null;
   onSelectRecord?: (record: TrackingRecord) => void;
   className?: string;
+  dateBadgeText?: string;
 }
 
 const MAP_LAYERS: MapLayerConfig[] = [
@@ -52,6 +54,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   selectedRecord,
   onSelectRecord,
   className = '',
+  dateBadgeText,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -494,6 +497,14 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
             </div>
           )}
         </div>
+
+        {/* Date Filter Status Badge */}
+        {dateBadgeText && (
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-emerald-800/90 text-white text-[11px] sm:text-xs font-semibold rounded-xl shadow-md border border-emerald-700/80 backdrop-blur">
+            <Calendar className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
+            <span className="whitespace-nowrap">{dateBadgeText}</span>
+          </div>
+        )}
 
         {/* Quick Point to Latest ("ชี้ตำแหน่งล่าสุด") Button */}
         <button

@@ -209,3 +209,46 @@ export function exportToJSON(data: unknown, filename = 'hornbill-tracking-data.j
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Extracts comparable YYYY-MM-DD date key from a record or date string
+ */
+export function getRecordDateKey(input?: string | TrackingRecord | null): string {
+  if (!input) return '';
+  const raw = resolveDateTimeString(input).trim();
+  if (!raw) return '';
+
+  // 1. ISO format: '2026-09-30T06:24:01Z' or '2026-09-30 07:09:01'
+  const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    const y = isoMatch[1];
+    const m = isoMatch[2].padStart(2, '0');
+    const d = isoMatch[3].padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // 2. Display format: '9/30/2026 6:24:01 AM'
+  const displayMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (displayMatch) {
+    const m = displayMatch[1].padStart(2, '0');
+    const d = displayMatch[2].padStart(2, '0');
+    const y = displayMatch[3];
+    return `${y}-${m}-${d}`;
+  }
+
+  // 3. Fallback Date parse
+  try {
+    const dt = new Date(raw.replace(' ', 'T'));
+    if (!isNaN(dt.getTime())) {
+      const y = dt.getFullYear();
+      const m = (dt.getMonth() + 1).toString().padStart(2, '0');
+      const d = dt.getDate().toString().padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+  } catch {
+    // ignore
+  }
+
+  return '';
+}
+
