@@ -51,8 +51,8 @@ export const SpeciesInfoView: React.FC = () => {
       aspect: 'aspect-square',
     },
     {
-      title: 'พอร์ตเทรตนกกาฮังตัวเต็มวัย',
-      subtitle: 'ราชานกเงือก สัตว์สัญลักษณ์แห่งความอุดมสมบูรณ์และความรักมั่นคง',
+      title: 'พอร์ตเทรตนกกาฮังเกาะกิ่งไม้',
+      subtitle: 'ราชานกเงือก สัตว์สัญลักษณ์แห่งความอุดมสมบูรณ์และความรักมั่นคงในพงไพร',
       tag: 'ทูตแห่งพงไพร',
       src: hornbillPortrait,
       aspect: 'aspect-4/3',

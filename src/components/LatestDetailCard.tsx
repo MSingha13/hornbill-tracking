@@ -85,6 +85,7 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
             src={hornbillPortrait}
             alt="นกกาฮัง Great Hornbill"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between text-white">

@@ -1,4 +1,5 @@
-import hornbillPortraitImg from './images/great_hornbill_lip_kee.jpg';
+import hornbillLipKeeImg from './images/great_hornbill_lip_kee.jpg';
+import hornbillBranchOpenBeakImg from './images/hornbill_branch_openbeak_1790837302278.jpg';
 import forestBgImg from './images/forest_mountains_bg_1790326339362.jpg';
 import hornbillIconImg from './images/hornbill_icon_1790326380220.jpg';
 import gistdaLogoImg from './images/gistda_logo.png';
@@ -11,7 +12,9 @@ import hornbillCanopyPerchImg from './images/hornbill_canopy_perch_1790564567776
 import hornbillFlightCanopyImg from './images/hornbill_flight_canopy_1790564582357.jpg';
 import hornbillCasqueCloseupImg from './images/hornbill_casque_closeup_1790564593257.jpg';
 
-export const hornbillPortrait = hornbillPortraitImg;
+export const hornbillPortrait = hornbillBranchOpenBeakImg;
+export const hornbillBranchOpenBeak = hornbillBranchOpenBeakImg;
+export const hornbillLipKee = hornbillLipKeeImg;
 export const forestBg = forestBgImg;
 export const hornbillIcon = hornbillIconImg;
 export const gistdaLogo = gistdaLogoImg;
