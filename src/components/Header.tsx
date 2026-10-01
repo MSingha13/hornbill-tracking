@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Quick Refresh on mobile right header (Manual update via updateSportdata) */}
+        {/* Quick Refresh on mobile right header */}
         <div className="md:hidden flex items-center gap-1.5">
           <button
             onClick={onRefresh}
@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right Section: Partner Logos (GISTDA, BSRC, สวนสัตว์เปิดเขาเขียว - Pure Logos, No text) & Action Buttons */}
+      {/* Right Section: Partner Logos & Action Buttons */}
       <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 md:pb-0 justify-start md:justify-end">
         {/* Partner Logos: GISTDA, BSRC, Khao Kheow Open Zoo */}
         <div className="flex items-center gap-1.5 sm:gap-2 pr-2 sm:pr-3 border-r border-slate-200 flex-shrink-0">

@@ -1,4 +1,4 @@
-import hornbillPortraitImg from './images/hornbill_portrait_1790326317585.jpg';
+import hornbillPortraitImg from './images/great_hornbill_lip_kee.jpg';
 import forestBgImg from './images/forest_mountains_bg_1790326339362.jpg';
 import hornbillIconImg from './images/hornbill_icon_1790326380220.jpg';
 import gistdaLogoImg from './images/gistda_logo.png';
@@ -25,4 +25,6 @@ export const hornbillFlightCanopy = hornbillFlightCanopyImg;
 export const hornbillCasqueCloseup = hornbillCasqueCloseupImg;
 
 export const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwZPgebby-VcBqA_y089FfcuzT-RuAwqeaMEUDx4X6uKLT5SvZ4yKVXbXSK-TZaQZaljg/exec';
-export const SCRIPT_UPDATE_ACTION = 'updateSportdata';
+export const SCRIPT_UPDATE_ACTION = 'updateSpotData';
+export const GAS_PROJECT_URL = 'https://script.google.com/u/1/home/projects/1ygcklZxoHMHLPX6iP1NGSgc091dfCsEu4L1Op46fQ2AqNPRiyouxtrI7/edit';
+

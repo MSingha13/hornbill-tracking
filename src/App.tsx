@@ -174,9 +174,15 @@ export default function App() {
     }
   }, []);
 
-  // Initial load once on component mount
+  // Initial load and periodic background sync (in sync with ScriptApp 1-hour trigger)
   useEffect(() => {
     fetchData();
+
+    const intervalId = window.setInterval(() => {
+      fetchData(false);
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
   }, [fetchData]);
 
   const handleExportCSV = () => {
@@ -404,6 +410,8 @@ export default function App() {
                 selectedRecord={selectedRecord}
                 onSelectRecord={handleSelectRecord}
                 onExportCSV={handleExportCSV}
+                onRefresh={() => fetchData(true)}
+                isLoading={isLoading}
               />
             </div>
           )}

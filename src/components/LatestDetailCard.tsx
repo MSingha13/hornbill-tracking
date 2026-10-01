@@ -89,12 +89,12 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between text-white">
             <div>
-              <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded backdrop-blur-xs ${
-                isSelectedHistorical ? 'bg-amber-600/90 text-white' : 'bg-emerald-700/80 text-white'
-              }`}>
-                {isSelectedHistorical ? 'พิกัดประวัติการบิน' : 'สถานะปลอดภัย'}
-              </span>
-              <div className="font-bold text-sm drop-shadow-sm mt-1">นกกาฮัง (Great Hornbill)</div>
+              {isSelectedHistorical && (
+                <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded backdrop-blur-xs bg-amber-600/90 text-white inline-block mb-1">
+                  พิกัดประวัติการบิน
+                </span>
+              )}
+              <div className="font-bold text-sm drop-shadow-sm">นกกาฮัง (Great Hornbill)</div>
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-300 font-mono">Buceros bicornis</span>

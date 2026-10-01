@@ -214,7 +214,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           fillOpacity: 0.15,
         }).addTo(layerGroup);
 
-        // 2. Latest Location Marker: Clean circular point (จุดวงกลม จุดล่าสุด) with sequence number and mini badge
+        // 2. Latest Location Marker: Clean circular point without number
         const isSelectedState = isSelected;
         const latestHtml = `
           <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
@@ -224,19 +224,19 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
                 isSelectedState ? 'bg-amber-600 ring-2 ring-amber-300' : 'bg-emerald-700 ring-1 ring-emerald-400'
               } text-white font-bold text-[9px] px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 leading-none">
                 <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                <span>ล่าสุด (จุดที่ ${seqIndex + 1})</span>
+                <span>ล่าสุด</span>
               </div>
             </div>
 
-            <!-- Compact Circular Point (จุดวงกลม 28px) -->
+            <!-- Compact Circular Point without number -->
             <div class="relative flex items-center justify-center">
-              <div class="absolute -inset-1 rounded-full ${
+              <div class="absolute -inset-1.5 rounded-full ${
                 isSelectedState ? 'bg-amber-400/40' : 'bg-emerald-500/30'
               } animate-ping pointer-events-none"></div>
-              <div class="relative z-10 w-7 h-7 rounded-full border-2 border-white ${
-                isSelectedState ? 'bg-amber-500 ring-2 ring-amber-400 text-white' : 'bg-emerald-600 ring-2 ring-emerald-500 text-white'
-              } shadow-lg flex items-center justify-center text-xs font-black">
-                ${seqIndex + 1}
+              <div class="relative z-10 w-6 h-6 rounded-full border-2 border-white ${
+                isSelectedState ? 'bg-amber-500 ring-2 ring-amber-400' : 'bg-emerald-600 ring-2 ring-emerald-500'
+              } shadow-lg flex items-center justify-center">
+                <span class="w-2 h-2 rounded-full bg-white shadow-xs"></span>
               </div>
             </div>
           </div>
@@ -261,7 +261,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
               <div>
                 <div class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                   <span>${point.record.assetId || 'KKOZ01'}</span>
-                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">จุดที่ ${seqIndex + 1} (ล่าสุด)</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">จุดล่าสุด</span>
                 </div>
                 <div class="text-[11px] text-emerald-600 font-medium">🛰️ สัญญาณดาวเทียม GlobalStar</div>
               </div>
@@ -284,24 +284,23 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         });
         marker.addTo(layerGroup);
       } else {
-        // Intermediate waypoints
+        // Intermediate waypoints without numbers
         const waypointHtml = isSelected
           ? `
             <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
               <div style="position: absolute; bottom: 100%; margin-bottom: 4px; white-space: nowrap;">
                 <div class="bg-amber-500 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg border border-white flex items-center gap-1 animate-bounce">
-                  <span>📍 จุดที่ ${seqIndex + 1}</span>
+                  <span>📍 จุดที่เลือก</span>
                 </div>
               </div>
-              <div class="w-7 h-7 rounded-full border-2 border-white bg-amber-500 ring-2 ring-amber-400 shadow-2xl flex items-center justify-center text-xs font-black text-white">
-                ${seqIndex + 1}
+              <div class="w-5 h-5 rounded-full border-2 border-white bg-amber-500 ring-2 ring-amber-400 shadow-xl flex items-center justify-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
               </div>
             </div>
           `
           : `
-            <div class="relative flex items-center justify-center cursor-pointer transition-transform hover:scale-125" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
-              <div class="w-6 h-6 rounded-full border-2 border-emerald-600 bg-white shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800">
-                ${seqIndex + 1}
+            <div class="relative flex items-center justify-center cursor-pointer transition-transform hover:scale-150" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
+              <div class="w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-md ring-1 ring-emerald-800/40">
               </div>
             </div>
           `;
