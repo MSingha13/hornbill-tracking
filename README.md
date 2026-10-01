@@ -84,10 +84,4 @@ http://localhost:3000
 
 ---
 
-## 🔗 ข้อมูล API
-- **Endpoint**: `https://script.google.com/macros/s/AKfycbwZPgebby-VcBqA_y089FfcuzT-RuAwqeaMEUDx4X6uKLT5SvZ4yKVXbXSK-TZaQZaljg/exec`
-- **Response Format**: JSON (`{ success: true, latest: {...}, records: [...] }`)
-
----
-
 *เทคโนโลยีเพื่อการอนุรักษ์ สู่อนาคตที่ยั่งยืน 🌿*
