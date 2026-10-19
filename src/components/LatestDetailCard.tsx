@@ -108,17 +108,8 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
           <div className="flex items-center justify-between py-1 border-b border-slate-50">
             <span className="text-slate-500">รหัสติดตาม</span>
             <div className="flex items-center gap-1.5">
-              <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] ${
-                assetId.includes('2')
-                  ? 'bg-blue-100 text-blue-900 border border-blue-200'
-                  : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
-              }`}>
+              <span className="font-bold font-mono px-2 py-0.5 rounded text-[11px] bg-emerald-100 text-emerald-900 border border-emerald-200">
                 {assetId}
-              </span>
-              <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
-                assetId.includes('2') ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
-              }`}>
-                {assetId.includes('2') ? 'ตัวที่ 2' : 'ตัวหลัก'}
               </span>
             </div>
           </div>

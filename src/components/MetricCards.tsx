@@ -55,11 +55,6 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight truncate flex items-center gap-1.5">
             <span>{assetId}</span>
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-              isKkoz02 ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
-            }`}>
-              {isKkoz02 ? 'ตัวที่ 2' : 'ตัวหลัก'}
-            </span>
           </div>
           <div className="text-xs text-slate-500 truncate mt-0.5">
             Great Hornbill <span className="text-emerald-700 font-medium">นกกาฮัง (Buceros bicornis)</span>

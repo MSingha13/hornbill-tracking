@@ -170,12 +170,15 @@ export default function App() {
 
     try {
       if (successData && successData.success) {
-        const rawRecords = successData.records || [];
+        // Filter out KKOZ02 data ("ตัด data KKOZ02 ออก ยังไม่ต้องโชว์")
+        const rawRecords = (successData.records || []).filter(
+          (r) => normalizeAssetId(r.assetId) !== 'KKOZ02'
+        );
         setRecords(rawRecords);
 
         // Find latest for current filter default (KKOZ01)
         const kkoz01Record = rawRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
-        setLatestRecord(kkoz01Record || successData.latest || rawRecords[0]);
+        setLatestRecord(kkoz01Record || rawRecords[0]);
         setLastUpdated(new Date());
 
         if (isManualTrigger) {

@@ -575,57 +575,13 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           )}
         </div>
 
-        {/* Asset Filter Switcher (KKOZ01 vs KKOZ02 vs ALL) */}
-        <div className="flex items-center bg-white/95 backdrop-blur p-0.5 rounded-xl shadow-md border border-slate-200">
-          <button
-            type="button"
-            onClick={() => handleAssetFilterChange('ALL')}
-            className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 ${
-              localAssetFilter === 'ALL'
-                ? 'bg-slate-800 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-            title="แสดงทุกเป้าหมาย (KKOZ01 + KKOZ02)"
-          >
-            <span>ทั้งหมด</span>
-            <span className="text-[10px] px-1 py-0.2 rounded-full bg-slate-200/50 text-inherit font-mono">
-              {assetCounts.all}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleAssetFilterChange('KKOZ01')}
-            className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 ${
-              localAssetFilter === 'KKOZ01'
-                ? 'bg-emerald-700 text-white shadow-xs'
-                : 'text-emerald-800 hover:bg-emerald-50'
-            }`}
-            title="แสดงเฉพาะ KKOZ01 (นกกาฮัง)"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-emerald-300"></span>
-            <span>KKOZ01</span>
-            <span className="text-[10px] px-1 py-0.2 rounded-full bg-emerald-100 text-emerald-900 font-mono">
-              {assetCounts.KKOZ01}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleAssetFilterChange('KKOZ02')}
-            className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 ${
-              localAssetFilter === 'KKOZ02'
-                ? 'bg-blue-700 text-white shadow-xs'
-                : 'text-blue-800 hover:bg-blue-50'
-            }`}
-            title="แสดงเฉพาะ KKOZ02"
-          >
-            <span className="w-2 h-2 rounded-full bg-blue-500 ring-1 ring-blue-300"></span>
-            <span>KKOZ02</span>
-            <span className="text-[10px] px-1 py-0.2 rounded-full bg-blue-100 text-blue-900 font-mono">
-              {assetCounts.KKOZ02}
-            </span>
-          </button>
+        {/* Active Target Indicator: KKOZ01 */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs font-bold text-emerald-800">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-emerald-300 animate-pulse"></span>
+          <span>KKOZ01</span>
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 font-mono">
+            {records.length} จุด
+          </span>
         </div>
 
         {/* Date Filter Status Badge */}
@@ -694,20 +650,13 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         </button>
       </div>
 
-      {/* Flight Legend overlay at bottom right with KKOZ01 and KKOZ02 distinct colors */}
+      {/* Flight Legend overlay at bottom right */}
       <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-3 z-[400] bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 text-[10px] sm:text-[11px] text-slate-700 flex flex-wrap items-center gap-2 sm:gap-3">
         {/* KKOZ01 track indicator */}
         <div className="flex items-center gap-1 sm:gap-1.5">
           <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-emerald-600"></span>
           <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
           <span className="font-bold text-emerald-800">KKOZ01</span>
-        </div>
-
-        {/* KKOZ02 track indicator */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-blue-600"></span>
-          <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-          <span className="font-bold text-blue-800">KKOZ02</span>
         </div>
 
         {/* Latest badge */}
