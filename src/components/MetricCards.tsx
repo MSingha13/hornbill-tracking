@@ -19,7 +19,9 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
     (activeRecord.positionId ? activeRecord.positionId !== latest.positionId : activeRecord.recordedAt !== latest.recordedAt)
   );
 
-  const assetId = current?.assetId || 'KKOZ01';
+  const rawAssetId = current?.assetId || 'KKOZ01';
+  const assetId = rawAssetId.toUpperCase().replace(/O/g, '0');
+  const isKkoz02 = assetId.includes('2');
   const address = current?.address || '-';
   const batteryNum = current?.battery !== undefined && current?.battery !== '' ? parseFloat(String(current.battery)) : null;
   const tempNum = current?.temperature !== undefined && current?.temperature !== '' ? parseFloat(String(current.temperature)) : null;
@@ -28,23 +30,36 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
       {/* Card 1: Asset Code & Species */}
       <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-3.5">
-        <div className="relative flex-shrink-0 w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-amber-400 to-emerald-500 shadow-sm">
+        <div className={`relative flex-shrink-0 w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr ${
+          isKkoz02 ? 'from-blue-400 to-indigo-600' : 'from-amber-400 to-emerald-500'
+        } shadow-sm`}>
           <img
             src={hornbillIcon}
             alt="Great Hornbill"
             className="w-full h-full object-cover rounded-[14px] bg-slate-900"
           />
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+          <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${
+            isKkoz02 ? 'bg-blue-500' : 'bg-emerald-500'
+          } border-2 border-white rounded-full`}></div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
             <span>รหัสติดตาม</span>
-            <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
+              isKkoz02
+                ? 'text-blue-700 bg-blue-50 border-blue-200'
+                : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+            }`}>
               {recordsCount} จุด{filterBadge ? ` • ${filterBadge}` : ''}
             </span>
           </div>
-          <div className="text-xl font-bold text-slate-900 tracking-tight truncate">
-            {assetId}
+          <div className="text-xl font-bold text-slate-900 tracking-tight truncate flex items-center gap-1.5">
+            <span>{assetId}</span>
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+              isKkoz02 ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              {isKkoz02 ? 'ตัวที่ 2' : 'ตัวหลัก'}
+            </span>
           </div>
           <div className="text-xs text-slate-500 truncate mt-0.5">
             Great Hornbill <span className="text-emerald-700 font-medium">นกกาฮัง (Buceros bicornis)</span>

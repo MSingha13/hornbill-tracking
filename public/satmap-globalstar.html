@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base href="https://satmap.space/">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>SatMap Space - Globalstar Satellite Orbits</title>
+    <link rel="canonical" href="https://satmap.space/" />
+    <link rel="stylesheet" type="text/css" href="https://satmap.space/assets/css/style.min.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script src="https://satmap.space/assets/js/sat.min.js"></script>
+    <script src="https://satmap.space/assets/js/main.min.js"></script>
+    <script src="https://satmap.space/dev/assets/js/mapstyles.min.js"></script>
+    <script>
+      // SatMap.space Globalstar Constellation Data (28 Satellites)
+      var TLE = [{"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M069", "tle1": "1 31573U 07020C   26279.36912495 -.00000052  00000+0  37525-3 0  9995", "tle2": "2 31573  52.0033 297.4376 0001906  20.4988 353.0062 12.23475274892419"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M072", "tle1": "1 31574U 07020D   26279.04069822 -.00000086  00000+0 -33782-4 0  9998", "tle2": "2 31574  51.9916 165.1231 0001371 126.7918  10.7238 11.91660206888195"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M066", "tle1": "1 32265U 07048C   26279.23264475 -.00000090  00000+0  39865-4 0  9990", "tle2": "2 32265  51.9565  99.1300 0003778 274.4707 256.6809 12.30390333873897"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M079", "tle1": "1 37188U 10054A   26279.33499497 -.00000100  00000+0  23077-4 0  9995", "tle2": "2 37188  52.0016 130.3199 0000655  94.4845  77.0157 12.62262866736586"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M074", "tle1": "1 37189U 10054B   26279.36152093 -.00000096  00000+0  42455-4 0  9992", "tle2": "2 37189  51.9996 129.4889 0000843  74.2261  96.8167 12.62263547737199"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M076", "tle1": "1 37190U 10054C   26279.30875462 -.00000085  00000+0  10333-3 0  9997", "tle2": "2 37190  52.0008 129.8625 0000617  71.7402  99.4664 12.62264118736901"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M077", "tle1": "1 37191U 10054D   26279.23561475 -.00000086  00000+0 -15453-3 0  9996", "tle2": "2 37191  51.9946 257.4383 0003089  23.1098 350.5487 11.67547337734114"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M075", "tle1": "1 37192U 10054E   26279.48002380 -.00000101  00000+0  16187-4 0  9992", "tle2": "2 37192  51.9936 171.3326 0000835  77.6373  93.0323 12.62261050735997"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M073", "tle1": "1 37193U 10054F   26279.61782610 -.00000096  00000+0  43162-4 0  9995", "tle2": "2 37193  52.0047  85.0945 0000583 103.2660 333.2181 12.62268475738000"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M083", "tle1": "1 37739U 11033A   26279.61734089 -.00000101  00000+0  13837-4 0  9999", "tle2": "2 37739  51.9880  33.1739 0000352 118.6551 255.3208 12.62269379707023"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M088", "tle1": "1 37740U 11033B   26279.35319851 -.00000074  00000+0  16469-3 0  9990", "tle2": "2 37740  52.0215 300.6761 0000357  78.7022 295.0629 12.62270717702537"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M091", "tle1": "1 37741U 11033C   26279.20808661 -.00000088  00000+0  85875-4 0  9990", "tle2": "2 37741  51.9990 263.9205 0000336  86.0967 287.3071 12.62265166703300"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M085", "tle1": "1 37742U 11033D   26279.54644536 -.00000107  00000+0 -18218-4 0  9997", "tle2": "2 37742  52.0120 214.2789 0000487  79.8953  91.6787 12.62265538703859"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M081", "tle1": "1 37743U 11033E   26279.57266623 -.00000118  00000+0 -77265-4 0  9997", "tle2": "2 37743  51.9952 216.5073 0000519  55.5114 115.7254 12.62266633704000"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M089", "tle1": "1 37744U 11033F   26279.45368428 -.00000109  00000+0 -27271-4 0  9993", "tle2": "2 37744  51.9919 171.0088 0000941  57.8958 113.2553 12.62264012704830"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M084", "tle1": "1 38040U 11080A   26279.59033765 -.00000109  00000+0 -30993-4 0  9998", "tle2": "2 38040  52.0030  38.1291 0000500  82.9070 289.5785 12.62264100682837"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M080", "tle1": "1 38041U 11080B   26279.64151471 -.00000107  00000+0 -20642-4 0  9998", "tle2": "2 38041  52.0077  39.7328 0001014 118.8358 254.4415 12.62268636682969"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M082", "tle1": "1 38042U 11080C   26279.51808056 -.00000094  00000+0  55561-4 0  9995", "tle2": "2 38042  52.0104 355.6216 0000531 136.3169 327.3972 12.62262778683651"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M092", "tle1": "1 38043U 11080D   26279.19004293 -.00000088  00000+0  85713-4 0  9996", "tle2": "2 38043  52.0066  87.0199 0000828  94.0507  77.9763 12.62266596682062"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M090", "tle1": "1 38044U 11080E   26279.52473370 -.00000089  00000+0  81836-4 0  9993", "tle2": "2 38044  52.0153 349.5925 0000429 145.0427 228.3310 12.62268141683775"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M086", "tle1": "1 38045U 11080F   26279.40114378 -.00000104  00000+0 -81122-6 0  9990", "tle2": "2 38045  51.9920 349.7136 0000661 302.1909 139.3417 12.62289311683705"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M097", "tle1": "1 39072U 13005A   26279.25783714 -.00000101  00000+0  13596-4 0  9993", "tle2": "2 39072  52.0045 265.2239 0000262  82.9794 277.1103 12.62271643630933"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M093", "tle1": "1 39073U 13005B   26279.23138857 -.00000084  00000+0  10903-3 0  9992", "tle2": "2 39073  52.0097 258.6968 0000101  79.2407 280.8471 12.62267544630886"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M094", "tle1": "1 39074U 13005C   26279.38970804 -.00000093  00000+0  60213-4 0  9995", "tle2": "2 39074  51.9953 172.2218 0000563  78.4911 281.6019 12.62264866632511"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M096", "tle1": "1 39075U 13005D   26279.56139464 -.00000109  00000+0 -29731-4 0  9994", "tle2": "2 39075  52.0067 220.5854 0000495  81.6029 278.4894 12.62264667631459"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M078", "tle1": "1 39076U 13005E   26279.37661623 -.00000065  00000+0  21755-3 0  9998", "tle2": "2 39076  51.9877 305.0112 0001166 134.8313 225.2648 12.62260920630056"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M095", "tle1": "1 39077U 13005F   26279.32391518 -.00000077  00000+0  14772-3 0  9991", "tle2": "2 39077  52.0082 302.9305 0000476 145.9639 214.1258 12.62264869629906"}, {"type": "globalstar", "cat": "communications", "name": "GLOBALSTAR M087", "tle1": "1 52888U 22064A   26278.86194871 -.00000097  00000+0  40077-4 0  9992", "tle2": "2 52888  51.9981  85.5083 0000756 113.7499 246.3447 12.62263269205115"}];
+
+      // Save cookie preference for Globalstar
+      try {
+        if (typeof Cookies !== 'undefined') {
+          var saved = {
+            'communications': {
+              'globalstar': { 'display': true },
+              'iridium-next': { 'display': false },
+              'starlink': { 'display': false },
+              'oneweb': { 'display': false },
+              'orbcomm': { 'display': false },
+              'ses': { 'display': false },
+              'intelsat': { 'display': false },
+              'o3b': { 'display': false }
+            },
+            'science': { 'science-other': { 'display': false }, 'iss': { 'display': false } },
+            'navigation': { 'gps': { 'display': false }, 'glonass': { 'display': false } },
+            'weather': { 'weather': { 'display': false }, 'noaa': { 'display': false } }
+          };
+          Cookies.set('TLEcategories', JSON.stringify(saved), { expires: 365 });
+        }
+      } catch(e) {}
+    </script>
+    <style>
+      #orbitControlBar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 9999px;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #ffffff;
+        font-size: 12px;
+      }
+      #orbitSelect {
+        background: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+      }
+      .orbit-btn {
+        background: #059669;
+        color: white;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .orbit-btn:hover {
+        background: #10b981;
+      }
+      #statusBadge {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: bold;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+      }
+    </style>
+  </head>
+  <body onload="onLoad()">
+    <div id="orbitControlBar">
+      <span style="font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 4px;">
+        🛰️ วงโคจร Globalstar:
+      </span>
+      <select id="orbitSelect" onchange="handleSelectOrbit(this.value)"></select>
+      <button class="orbit-btn" onclick="triggerOrbit()">วาดวงโคจร</button>
+      <button class="orbit-btn" style="background: #0284c7;" onclick="focusThailand()">🇹🇭 โฟกัสไทย</button>
+      <span id="statusBadge">28 ดวง</span>
+    </div>
+
+    <div id="map"></div>
+
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQwfOCVDASdcDtYlGhwDR10vf0D5CbaSU&callback=initMap&libraries=geometry">
+    </script>
+
+    <script>
+      function populateOrbitSelector() {
+        var sel = document.getElementById('orbitSelect');
+        if (!sel || !Array.isArray(TLE)) return;
+        sel.innerHTML = '';
+        for (var i = 0; i < TLE.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = TLE[i].name;
+          sel.appendChild(opt);
+        }
+      }
+
+      function handleSelectOrbit(index) {
+        var sat = TLE[index];
+        if (!sat) return;
+        if (typeof displayOrbit === 'function') {
+          displayOrbit(sat);
+        }
+      }
+
+      function triggerOrbit() {
+        var sel = document.getElementById('orbitSelect');
+        if (sel) handleSelectOrbit(sel.value);
+      }
+
+      function focusThailand() {
+        if (typeof map !== 'undefined' && map) {
+          map.setCenter({ lat: 18.835, lng: 99.4715 });
+          map.setZoom(5);
+        }
+      }
+
+      window.addEventListener('load', function() {
+        populateOrbitSelector();
+
+        var checkInterval = setInterval(function() {
+          if (typeof map !== 'undefined' && map && typeof google !== 'undefined') {
+            clearInterval(checkInterval);
+            focusThailand();
+
+            // Automatically display orbit for first Globalstar satellite or M083
+            setTimeout(function() {
+              var targetIdx = 0;
+              for (var j = 0; j < TLE.length; j++) {
+                if (TLE[j].name.indexOf('M083') !== -1 || TLE[j].name.indexOf('M074') !== -1) {
+                  targetIdx = j;
+                  break;
+                }
+              }
+              var sel = document.getElementById('orbitSelect');
+              if (sel) sel.value = targetIdx;
+              handleSelectOrbit(targetIdx);
+            }, 1000);
+          }
+        }, 500);
+      });
+    </script>
+  </body>
+</html>

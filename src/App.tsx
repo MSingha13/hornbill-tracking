@@ -10,18 +10,19 @@ import { MetricCards } from './components/MetricCards';
 import { TrackingMap } from './components/TrackingMap';
 import { LatestDetailCard } from './components/LatestDetailCard';
 import { HistoryTable, AvailableDateOption } from './components/HistoryTable';
-import { ReportsView } from './components/ReportsView';
 import { SpeciesInfoView } from './components/SpeciesInfoView';
-import { TrackingRecord, TrackingApiResponse } from './types/tracking';
+import { SatMapView } from './components/SatMapView';
+import { TrackingRecord, TrackingApiResponse, AssetFilterType, normalizeAssetId } from './types/tracking';
 import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey } from './utils/formatters';
 import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
-import { Home, Map, Feather, AlertCircle, CheckCircle2, Menu, Calendar } from 'lucide-react';
+import { Home, Map, Feather, AlertCircle, CheckCircle2, Menu, Calendar, Satellite } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [records, setRecords] = useState<TrackingRecord[]>([]);
   const [latestRecord, setLatestRecord] = useState<TrackingRecord | undefined>(undefined);
   const [selectedRecord, setSelectedRecord] = useState<TrackingRecord | null>(null);
+  const [selectedAssetFilter, setSelectedAssetFilter] = useState<AssetFilterType>('KKOZ01');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -131,29 +132,54 @@ export default function App() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      // Calls Google Apps Script Web App with action=updateSportdata to pull fresh satellite data
-      const url = `${API_ENDPOINT}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
+    const isLocalhostOrXampp =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.protocol === 'file:');
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    // URLs to try: direct Google Apps Script first, then local PHP proxy (api.php) if on XAMPP
+    const urlsToTry = [
+      `${API_ENDPOINT}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`,
+      isLocalhostOrXampp ? `api.php?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}` : null,
+    ].filter(Boolean) as string[];
+
+    let lastError: unknown = null;
+    let successData: TrackingApiResponse | null = null;
+
+    for (const url of urlsToTry) {
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data: TrackingApiResponse = await response.json();
+          if (data && data.success) {
+            successData = data;
+            break;
+          }
+        }
+      } catch (e) {
+        lastError = e;
       }
+    }
 
-      const data: TrackingApiResponse = await response.json();
+    try {
+      if (successData && successData.success) {
+        const rawRecords = successData.records || [];
+        setRecords(rawRecords);
 
-      if (data && data.success) {
-        setRecords(data.records || []);
-        setLatestRecord(data.latest || (data.records && data.records[0]));
+        // Find latest for current filter default (KKOZ01)
+        const kkoz01Record = rawRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
+        setLatestRecord(kkoz01Record || successData.latest || rawRecords[0]);
         setLastUpdated(new Date());
 
         if (isManualTrigger) {
-          const count = data.records?.length || 0;
+          const count = successData.records?.length || 0;
           setSyncStatus({
             type: 'success',
             message: `อัปเดตข้อมูลพิกัดดาวเทียมล่าสุดเรียบร้อยแล้ว (พบข้อมูล ${count} จุด)`,
@@ -163,10 +189,10 @@ export default function App() {
           }, 5000);
         }
       } else {
-        throw new Error(data?.message || 'ไม่สามารถดึงข้อมูลจากสัญญาณ GlobalStar ได้');
+        throw new Error((successData as any)?.message || 'ไม่สามารถดึงข้อมูลจากสัญญาณ GlobalStar ได้');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+      const msg = err instanceof Error ? err.message : String(lastError || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
       console.warn('Signal fetch issue:', err);
       setError(`ไม่สามารถเชื่อมต่อสัญญาณดาวเทียมได้ (${msg}) กรุณากดลองใหม่`);
     } finally {
@@ -200,6 +226,20 @@ export default function App() {
 
   const handleResetToLatest = () => {
     setSelectedRecord(null);
+  };
+
+  const handleAssetFilterChange = (filter: AssetFilterType) => {
+    setSelectedAssetFilter(filter);
+    setSelectedRecord(null);
+    if (filter === 'KKOZ01') {
+      const kkoz01 = records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
+      if (kkoz01) setLatestRecord(kkoz01);
+    } else if (filter === 'KKOZ02') {
+      const kkoz02 = records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+      if (kkoz02) setLatestRecord(kkoz02);
+    } else if (records.length > 0) {
+      setLatestRecord(records[0]);
+    }
   };
 
   const handleFocusActiveOnMap = () => {
@@ -352,6 +392,37 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Quick Space & SatMap Banner Shortcut */}
+              <div
+                onClick={() => setCurrentTab('satmap')}
+                className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white px-3.5 py-2.5 rounded-2xl border border-emerald-900/60 shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-emerald-500/80 transition-all group"
+                title="คลิกเพื่อเปิดดูแผนที่ดาวเทียมเรียลไทม์ satmap.space"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                    <Satellite className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
+                        แผนที่ดาวเทียมเรียลไทม์ (satmap.space)
+                      </span>
+                      <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 px-2 py-0.2 rounded-full border border-emerald-500/30">
+                        Live 24/7
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 hidden sm:block">
+                      คลิกดูตำแหน่งและเส้นทางวงโคจรดาวเทียมที่ผ่านประเทศไทย (Globalstar, SPOT)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold group-hover:translate-x-1 transition-transform flex-shrink-0">
+                  <span>เปิดดูดาวเทียมผ่านไทย</span>
+                  <span>→</span>
+                </div>
+              </div>
+
               {/* 4 Top KPI Metric Cards */}
               <MetricCards
                 latest={latestRecord}
@@ -377,6 +448,8 @@ export default function App() {
                     latestRecord={latestRecord}
                     selectedRecord={selectedRecord}
                     onSelectRecord={handleSelectRecord}
+                    selectedAssetFilter={selectedAssetFilter}
+                    onSelectAssetFilter={handleAssetFilterChange}
                     dateBadgeText={
                       filterMode === 'five_days'
                         ? `จุด 5 วันล่าสุด: ${fiveDaysDateRangeText || ''} (${displayedRecords.length} จุด)`
@@ -502,6 +575,8 @@ export default function App() {
                   latestRecord={latestRecord}
                   selectedRecord={selectedRecord}
                   onSelectRecord={handleSelectRecord}
+                  selectedAssetFilter={selectedAssetFilter}
+                  onSelectAssetFilter={handleAssetFilterChange}
                   dateBadgeText={
                     filterMode === 'five_days'
                       ? `จุด 5 วันล่าสุด: ${fiveDaysDateRangeText || ''} (${displayedRecords.length} จุด)`
@@ -515,26 +590,26 @@ export default function App() {
             </div>
           )}
 
-          {/* Tab 3: Reports & Analytics */}
-          {currentTab === 'reports' && (
-            <div className="max-w-7xl mx-auto">
-              <ReportsView records={records} latest={latestRecord} />
-            </div>
-          )}
-
-          {/* Tab 4: Species Information & Ecology */}
+          {/* Tab 3: Species Information & Ecology */}
           {currentTab === 'species' && (
             <div className="max-w-7xl mx-auto">
               <SpeciesInfoView />
             </div>
           )}
+
+          {/* Tab 5: SatMap Space & Satellites Passing Over Thailand */}
+          {currentTab === 'satmap' && (
+            <div className="max-w-7xl mx-auto">
+              <SatMapView />
+            </div>
+          )}
         </main>
 
         {/* Mobile Bottom Navigation Bar */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around z-40 shadow-lg safe-area-bottom">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-1 py-1.5 flex items-center justify-around z-40 shadow-lg safe-area-bottom">
           <button
             onClick={() => setCurrentTab('dashboard')}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10px] font-medium transition-all ${
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl text-[10px] font-medium transition-all ${
               currentTab === 'dashboard'
                 ? 'text-emerald-800 font-bold bg-emerald-50'
                 : 'text-slate-500 hover:text-slate-900'
@@ -546,7 +621,7 @@ export default function App() {
 
           <button
             onClick={() => setCurrentTab('map')}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10px] font-medium transition-all ${
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl text-[10px] font-medium transition-all ${
               currentTab === 'map'
                 ? 'text-emerald-800 font-bold bg-emerald-50'
                 : 'text-slate-500 hover:text-slate-900'
@@ -557,8 +632,20 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setCurrentTab('satmap')}
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl text-[10px] font-medium transition-all ${
+              currentTab === 'satmap'
+                ? 'text-emerald-800 font-bold bg-emerald-50'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Satellite className="w-5 h-5" />
+            <span>ดาวเทียม</span>
+          </button>
+
+          <button
             onClick={() => setCurrentTab('species')}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10px] font-medium transition-all ${
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl text-[10px] font-medium transition-all ${
               currentTab === 'species'
                 ? 'text-emerald-800 font-bold bg-emerald-50'
                 : 'text-slate-500 hover:text-slate-900'
@@ -570,7 +657,7 @@ export default function App() {
 
           <button
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10px] font-medium text-slate-500 hover:text-slate-900 transition-all"
+            className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl text-[10px] font-medium text-slate-500 hover:text-slate-900 transition-all"
             title="เปิดเมนูและข้อมูลภาคี"
           >
             <Menu className="w-5 h-5" />

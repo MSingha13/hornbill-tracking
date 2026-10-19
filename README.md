@@ -84,4 +84,37 @@ http://localhost:3000
 
 ---
 
+## 🐘 วิธีการนำไปรันบน XAMPP (Apache Web Server)
+
+โปรเจกต์นี้ได้รับการตั้งค่า `base: './'` ไว้เรียบร้อยแล้ว ทำให้สามารถนำโฟลเดอร์ไฟล์ Build ไปวางใน XAMPP แล้วเปิดใช้งานได้ทันทีทั้งแบบ Root หรือ Subfolder:
+
+### ขั้นตอนที่ 1: สั่ง Build โปรเจกต์
+รันคำสั่งใน Terminal:
+```bash
+npm run build
+```
+ระบบจะสร้างโฟลเดอร์ `dist/` ซึ่งมีไฟล์ `index.html`, `assets/`, `.htaccess` และ `api.php`
+
+### ขั้นตอนที่ 2: คัดลอกไฟล์ไปยังโฟลเดอร์ `htdocs` ของ XAMPP
+- **Windows**: `C:\xampp\htdocs\`
+- **macOS**: `/Applications/XAMPP/xamppfiles/htdocs/`
+- **Linux**: `/opt/lampp/htdocs/`
+
+สร้างโฟลเดอร์ชื่อ เช่น `hornbill` ใน `htdocs`:
+```
+C:\xampp\htdocs\hornbill\
+```
+จากนั้นคัดลอก **ไฟล์และโฟลเดอร์ทั้งหมดที่อยู่ข้างในโฟลเดอร์ `dist/`** มาวางที่นี่
+
+### ขั้นตอนที่ 3: เปิดใช้งาน XAMPP
+1. เปิดโปรแกรม **XAMPP Control Panel**
+2. กดปุ่ม **Start** ที่โมดูล **Apache** (ให้ขึ้นสถานะสีเขียว)
+3. เปิดเว็บเบราว์เซอร์แล้วเข้า URL:
+```
+http://localhost/hornbill/
+```
+(หรือหากนำไฟล์ใน `dist/` ไปวางที่ `htdocs/` โดยตรง สามารถเข้าผ่าน `http://localhost/` ได้เลย)
+
+---
+
 *เทคโนโลยีเพื่อการอนุรักษ์ สู่อนาคตที่ยั่งยืน 🌿*

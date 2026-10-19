@@ -210,6 +210,44 @@ export function exportToJSON(data: unknown, filename = 'hornbill-tracking-data.j
   URL.revokeObjectURL(url);
 }
 
+export function exportTasksToCSV(tasks: any[], filename = 'task-tracking-export.csv') {
+  if (!tasks || tasks.length === 0) return;
+  const headers = [
+    'รหัสงาน',
+    'งาน/โครงการ',
+    'โครงการ',
+    'ผู้รับผิดชอบ',
+    'วันที่เริ่ม',
+    'กำหนดส่ง',
+    'สถานะ',
+    '% ความคืบหน้า',
+    'ความสำคัญ',
+    'หมายเหตุ'
+  ];
+  const rows = tasks.map((t) => [
+    `"${t.id || ''}"`,
+    `"${(t.title || '').replace(/"/g, '""')}"`,
+    `"${(t.project || '').replace(/"/g, '""')}"`,
+    `"${(t.assignee || '').replace(/"/g, '""')}"`,
+    `"${t.startDate || ''}"`,
+    `"${t.dueDate || ''}"`,
+    `"${t.status || ''}"`,
+    t.progress ?? 0,
+    `"${t.priority || ''}"`,
+    `"${(t.note || '').replace(/"/g, '""')}"`
+  ]);
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Extracts comparable YYYY-MM-DD date key from a record or date string
  */

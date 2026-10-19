@@ -243,7 +243,11 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                     <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-mono text-[11px] flex items-center justify-center font-bold">
                       {index}
                     </span>
-                    <span className="bg-emerald-100 text-emerald-900 font-mono font-bold text-xs px-2 py-0.5 rounded">
+                    <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
+                      (r.assetId || '').toUpperCase().includes('2')
+                        ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                        : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                    }`}>
                       {r.assetId || 'KKOZ01'}
                     </span>
                   </div>
@@ -353,7 +357,11 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                   >
                     <td className="py-3 px-4 text-center font-mono text-slate-500">{index}</td>
                     <td className="py-3 px-4 font-mono font-bold text-slate-800">
-                      <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
+                        (r.assetId || '').toUpperCase().includes('2')
+                          ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                          : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                      }`}>
                         {r.assetId || 'KKOZ01'}
                       </span>
                     </td>

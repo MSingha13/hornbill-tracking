@@ -187,13 +187,13 @@ export const SpeciesInfoView: React.FC = () => {
           <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
             <Radio className="w-5 h-5" />
           </div>
-          <h3 className="font-bold text-slate-900 text-sm">อุปกรณ์ติดตามดาวเทียม (KKOZ01)</h3>
+          <h3 className="font-bold text-slate-900 text-sm">อุปกรณ์ติดตามดาวเทียม (KKOZ01 & KKOZ02)</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
             ใช้แท็กน้ำหนักเบาไม่เกิน 3% ของน้ำหนักตัวนก ติดตั้งระบบ Solar & Battery, เซนเซอร์ GPS/GNSS, วัดอุณหภูมิ และส่งสัญญาณผ่านระบบดาวเทียม GlobalStar IoT เครือข่าย LEO Satellite
           </p>
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-slate-500">รหัสอุปกรณ์:</span>
-            <span className="font-bold text-slate-800 font-mono">KKOZ01 (Khao Kheow)</span>
+            <span className="font-bold text-slate-800 font-mono">KKOZ01, KKOZ02</span>
           </div>
         </div>
       </div>

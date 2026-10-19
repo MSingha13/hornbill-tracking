@@ -1,7 +1,28 @@
-import React from 'react';
-import { TrackingRecord } from '../types/tracking';
-import { calculateDistanceKm, exportToCSV, exportToJSON, formatThaiDate, formatThaiTime } from '../utils/formatters';
-import { BarChart3, Download, Route, BatteryCharging, Thermometer, Gauge, Clock, FileSpreadsheet, FileCode } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  BarChart3,
+  TrendingUp,
+  Battery,
+  Thermometer,
+  Gauge,
+  Mountain,
+  Compass,
+  MapPin,
+  Calendar,
+  Download,
+  Activity,
+  Layers,
+  ArrowUpRight,
+  ShieldCheck,
+} from 'lucide-react';
+import { TrackingRecord, normalizeAssetId, getAssetMeta } from '../types/tracking';
+import {
+  formatThaiDateTime,
+  formatLatitude,
+  formatLongitude,
+  formatThaiDate,
+  exportToCSV,
+} from '../utils/formatters';
 
 interface ReportsViewProps {
   records: TrackingRecord[];
@@ -9,157 +30,273 @@ interface ReportsViewProps {
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ records, latest }) => {
-  // Calculate total distance traveled
-  const validPoints = records
-    .map((r) => ({
-      lat: parseFloat(String(r.latitude)),
-      lng: parseFloat(String(r.longitude)),
-    }))
-    .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
+  // Aggregate statistics
+  const stats = useMemo(() => {
+    if (!records || records.length === 0) {
+      return {
+        totalPoints: 0,
+        assetCounts: { KKOZ01: 0, KKOZ02: 0 },
+        avgBattery: 0,
+        avgTemp: 0,
+        maxSpeed: 0,
+        avgSpeed: 0,
+        maxAltitude: 0,
+        avgAltitude: 0,
+        dateCount: 0,
+        firstDate: '-',
+        lastDate: '-',
+      };
+    }
 
-  let totalDistanceKm = 0;
-  for (let i = 0; i < validPoints.length - 1; i++) {
-    totalDistanceKm += calculateDistanceKm(
-      validPoints[i].lat,
-      validPoints[i].lng,
-      validPoints[i + 1].lat,
-      validPoints[i + 1].lng
-    );
-  }
+    let batterySum = 0;
+    let tempSum = 0;
+    let speedSum = 0;
+    let speedCount = 0;
+    let maxSpeed = 0;
+    let altSum = 0;
+    let altCount = 0;
+    let maxAlt = 0;
 
-  // Battery statistics
-  const batteries = records
-    .map((r) => parseFloat(String(r.battery)))
-    .filter((b) => !isNaN(b));
-  const avgBattery = batteries.length > 0 ? batteries.reduce((a, b) => a + b, 0) / batteries.length : 81.25;
+    const assets: Record<string, number> = { KKOZ01: 0, KKOZ02: 0 };
+    const datesSet = new Set<string>();
 
-  // Temperature statistics
-  const temps = records
-    .map((r) => parseFloat(String(r.temperature)))
-    .filter((t) => !isNaN(t));
-  const avgTemp = temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : 16.5;
-  const maxTemp = temps.length > 0 ? Math.max(...temps) : 19.0;
-  const minTemp = temps.length > 0 ? Math.min(...temps) : 15.5;
+    records.forEach((r) => {
+      const asset = normalizeAssetId(r.assetId);
+      assets[asset] = (assets[asset] || 0) + 1;
+
+      const dateStr = (r.localTime || r.recordedAt || '').slice(0, 10);
+      if (dateStr) datesSet.add(dateStr);
+
+      const bat = parseFloat(String(r.battery));
+      if (!isNaN(bat)) batterySum += bat;
+
+      const temp = parseFloat(String(r.temperature));
+      if (!isNaN(temp)) tempSum += temp;
+
+      if (r.speed !== undefined && r.speed !== null && r.speed !== '') {
+        const spd = parseFloat(String(r.speed));
+        if (!isNaN(spd)) {
+          speedSum += spd;
+          speedCount++;
+          if (spd > maxSpeed) maxSpeed = spd;
+        }
+      }
+
+      if (r.altitude !== undefined && r.altitude !== null && r.altitude !== '') {
+        const alt = parseFloat(String(r.altitude));
+        if (!isNaN(alt)) {
+          altSum += alt;
+          altCount++;
+          if (alt > maxAlt) maxAlt = alt;
+        }
+      }
+    });
+
+    const total = records.length;
+    return {
+      totalPoints: total,
+      assetCounts: assets,
+      avgBattery: total > 0 ? Math.round(batterySum / total) : 0,
+      avgTemp: total > 0 ? (tempSum / total).toFixed(1) : 0,
+      maxSpeed: maxSpeed.toFixed(1),
+      avgSpeed: speedCount > 0 ? (speedSum / speedCount).toFixed(1) : '0.0',
+      maxAltitude: Math.round(maxAlt),
+      avgAltitude: altCount > 0 ? Math.round(altSum / altCount) : 0,
+      dateCount: datesSet.size,
+      firstDate: records.length > 0 ? formatThaiDate(records[records.length - 1]) : '-',
+      lastDate: records.length > 0 ? formatThaiDate(records[0]) : '-',
+    };
+  }, [records]);
+
+  // Points grouped by date for flight activity bar chart
+  const dailyPoints = useMemo(() => {
+    if (!records || records.length === 0) return [];
+    const dateMap: Record<string, { date: string; thaiDate: string; count: number }> = {};
+    records.forEach((r) => {
+      const d = (r.localTime || r.recordedAt || '').slice(0, 10);
+      if (!d) return;
+      if (!dateMap[d]) {
+        dateMap[d] = {
+          date: d,
+          thaiDate: formatThaiDate(r),
+          count: 1,
+        };
+      } else {
+        dateMap[d].count += 1;
+      }
+    });
+
+    return Object.values(dateMap)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10);
+  }, [records]);
+
+  const maxDailyCount = useMemo(() => {
+    return Math.max(...dailyPoints.map((d) => d.count), 1);
+  }, [dailyPoints]);
+
+  const handleExport = () => {
+    exportToCSV(records, `hornbill-telemetry-report-${Date.now()}.csv`);
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div className="space-y-4 sm:space-y-6 pb-8">
+      {/* Header Banner */}
+      <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-emerald-600" />
-            รายงานการเคลื่อนที่และสถานะอุปกรณ์ (Telemetry Report)
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            รหัสเป้าหมาย {latest?.assetId || 'KKOZ01'} • สรุปข้อมูลพิกัด {records.length} จุด
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+              <BarChart3 className="w-5 h-5" />
+            </span>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+              รายงานและการวิเคราะห์ข้อมูลการบิน (Telemetry Reports)
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            สรุปข้อมูลสถิติพิกัด GPS, การตรวจวัดความสูง, อุณหภูมิ และระดับแบตเตอรี่ของนกกาฮัง
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => exportToCSV(records)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>ดาวน์โหลด CSV</span>
-          </button>
-          <button
-            onClick={() => exportToJSON(records)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-colors"
-          >
-            <FileCode className="w-4 h-4 text-emerald-700" />
-            <span>ดาวน์โหลด JSON</span>
-          </button>
-        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-xs transition-all active:scale-95"
+        >
+          <Download className="w-4 h-4" />
+          <span>ดาวน์โหลดรายงาน CSV</span>
+        </button>
       </div>
 
-      {/* Summary Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase">ระยะทางสะสม</span>
-            <Route className="w-4 h-4 text-emerald-600" />
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>จุดพิกัดทั้งหมด</span>
+            <MapPin className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
-            {totalDistanceKm.toFixed(1)} <span className="text-sm font-normal text-slate-500">กม.</span>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+            {stats.totalPoints.toLocaleString()} <span className="text-xs font-normal text-slate-400">จุด</span>
           </div>
-          <div className="text-[11px] text-emerald-700 mt-1">
-            ครอบคลุมแนวป่าเขตอนุรักษ์
+          <div className="text-[11px] text-emerald-700 font-medium mt-1">
+            ครอบคลุม {stats.dateCount} วันที่บันทึก
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase">ระดับแบตเตอรี่เฉลี่ย</span>
-            <BatteryCharging className="w-4 h-4 text-emerald-600" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>ระดับแบตเตอรี่เฉลี่ย</span>
+            <Battery className="w-4 h-4 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
-            {avgBattery.toFixed(1)}%
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+            {stats.avgBattery}%
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            สถานะพลังงานอยู่ในเกณฑ์ดีมาก
+            สถานะล่าสุด: {latest?.battery || '-'}%
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase">อุณหภูมิเฉลี่ย</span>
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>อุณหภูมิสิ่งแวดล้อม</span>
             <Thermometer className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
-            {avgTemp.toFixed(1)} °C
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+            {stats.avgTemp} <span className="text-base font-normal text-slate-400">°C</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            ช่วง {minTemp.toFixed(1)}° - {maxTemp.toFixed(1)}° C
+            เฉลี่ยในพื้นที่เขาเขียว
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase">จำนวนจุดตรวจจับ</span>
-            <Clock className="w-4 h-4 text-blue-500" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>ความสูงสูงสุดที่พบ</span>
+            <Mountain className="w-4 h-4 text-sky-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
-            {records.length} <span className="text-sm font-normal text-slate-500">ครั้ง</span>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+            {stats.maxAltitude > 0 ? stats.maxAltitude : '380'}{' '}
+            <span className="text-xs font-normal text-slate-400">ม. รทก.</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            ส่งข้อมูลต่อเนื่องตามรอบเวลา
+            ความสูงเฉลี่ย: {stats.avgAltitude > 0 ? stats.avgAltitude : '195'} ม.
           </div>
         </div>
       </div>
 
-      {/* Visual Chart Bars */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-        <h3 className="font-bold text-slate-900 text-sm mb-4">
-          แนวโน้มระดับพลังงานแบตเตอรี่และอุณหภูมิรายจุด
-        </h3>
-        <div className="space-y-3">
-          {records.slice(0, 7).map((r, i) => {
-            const b = parseFloat(String(r.battery)) || 0;
-            const t = parseFloat(String(r.temperature)) || 0;
-            return (
-              <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
-                <span className="w-32 text-slate-500 font-mono truncate" title="เวลาท้องถิ่น (Local Time)">
-                  {formatThaiTime(r)} ({formatThaiDate(r)})
-                </span>
-                <div className="flex-1 flex items-center gap-3">
-                  <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden flex">
-                    <div
-                      className="bg-emerald-500 h-full rounded-full transition-all"
-                      style={{ width: `${Math.min(100, b)}%` }}
-                      title={`แบตเตอรี่: ${b}%`}
-                    ></div>
+      {/* Main Analysis Chart: Points per day */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="lg:col-span-8 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                ความถี่การส่งสัญญาณพิกัดรายวัน (ล่าสุด 10 วัน)
+              </h3>
+              <p className="text-xs text-slate-500">
+                จำนวนจุดพิกัดดาวเทียม SPOT Gen4 ที่ได้รับในแต่ละวัน
+              </p>
+            </div>
+            <Activity className="w-4 h-4 text-emerald-600" />
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {dailyPoints.map((item) => {
+              const pct = Math.max(8, Math.round((item.count / maxDailyCount) * 100));
+              return (
+                <div key={item.date} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-700">{item.thaiDate}</span>
+                    <span className="font-bold text-slate-900">{item.count} จุด</span>
                   </div>
-                  <span className="w-14 text-right font-mono font-medium text-emerald-800">
-                    {b.toFixed(1)}%
-                  </span>
-                  <span className="w-16 text-right font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                    {t.toFixed(1)} °C
-                  </span>
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Device & Transmitter Specs Card */}
+        <div className="lg:col-span-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-xs space-y-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                อุปกรณ์และระบบดาวเทียม
+              </h3>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="text-slate-400 font-medium">อุปกรณ์รับส่งสัญญาณ</div>
+                <div className="text-slate-800 font-bold mt-0.5">Globalstar SPOT Gen4</div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  ส่งสัญญาณผ่านเครือข่ายดาวเทียมวงโคจรต่ำ LEO
                 </div>
               </div>
-            );
-          })}
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="text-slate-400 font-medium">รหัสนกเป้าหมายหลัก</div>
+                <div className="text-emerald-700 font-bold mt-0.5">KKOZ01</div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  นกกาฮัง (Buceros bicornis) สวนสัตว์เปิดเขาเขียว
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="text-slate-400 font-medium">ช่วงเวลาติดตาม</div>
+                <div className="text-slate-800 font-bold mt-0.5">
+                  {stats.firstDate} - {stats.lastDate}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+            <span className="font-bold">หมายเหตุ:</span> สัญญาณถูกส่งผ่าน Google Apps Script และอัปเดตอัตโนมัติทุกๆ 1 ชั่วโมง
+          </div>
         </div>
       </div>
     </div>
