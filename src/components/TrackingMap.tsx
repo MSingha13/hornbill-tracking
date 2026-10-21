@@ -34,13 +34,18 @@ interface TrackingMapProps {
   onSelectAssetFilter?: (asset: AssetFilterType) => void;
 }
 
+const GISTDA_BASEMAP_URL =
+  'https://api-gateway.gistda.or.th/api/2.0/resources/tiles/basemap_latest/{z}/{x}/{y}.png?api_key=QTaU1eTmZpIHIItdShp6fiUMcEHxBja3sRFcHYUeaRwAcAumkojB9FgIbxPCcuqW';
+
 const MAP_LAYERS: MapLayerConfig[] = [
   {
-    id: 'osm',
-    name: 'OpenStreetMap (มาตรฐาน)',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19,
+    id: 'gistda',
+    name: 'แผนที่ดาวเทียม GISTDA',
+    url: GISTDA_BASEMAP_URL,
+    attribution: '&copy; <a href="https://www.gistda.or.th" target="_blank" rel="noopener noreferrer">GISTDA</a>',
+    maxZoom: 18,
+    tileSize: 512,
+    zoomOffset: -1,
   },
   {
     id: 'satellite',
@@ -48,6 +53,17 @@ const MAP_LAYERS: MapLayerConfig[] = [
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
     maxZoom: 19,
+    tileSize: 256,
+    zoomOffset: 0,
+  },
+  {
+    id: 'osm',
+    name: 'OpenStreetMap (มาตรฐาน)',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+    tileSize: 256,
+    zoomOffset: 0,
   },
   {
     id: 'topo',
@@ -55,6 +71,8 @@ const MAP_LAYERS: MapLayerConfig[] = [
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
     maxZoom: 17,
+    tileSize: 256,
+    zoomOffset: 0,
   },
 ];
 
@@ -75,7 +93,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   const latestMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
 
-  const [activeLayerId, setActiveLayerId] = useState<string>('osm');
+  const [activeLayerId, setActiveLayerId] = useState<string>('gistda');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
   const [isPlayingReplay, setIsPlayingReplay] = useState<boolean>(false);
   const [replayIndex, setReplayIndex] = useState<number>(0);
@@ -137,6 +155,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       const tileLayer = L.tileLayer(layerConfig.url, {
         attribution: layerConfig.attribution,
         maxZoom: layerConfig.maxZoom,
+        tileSize: layerConfig.tileSize || 256,
+        zoomOffset: layerConfig.zoomOffset || 0,
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
@@ -178,6 +198,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
     const newTileLayer = L.tileLayer(layerConfig.url, {
       attribution: layerConfig.attribution,
       maxZoom: layerConfig.maxZoom,
+      tileSize: layerConfig.tileSize || 256,
+      zoomOffset: layerConfig.zoomOffset || 0,
     }).addTo(mapInstanceRef.current);
 
     tileLayerRef.current = newTileLayer;

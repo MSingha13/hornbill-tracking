@@ -82,7 +82,7 @@ export const GlobalstarLiveMap: React.FC<{ className?: string }> = ({ className 
   const satLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const beamLayerGroupRef = useRef<L.LayerGroup | null>(null);
 
-  const [activeTileId, setActiveTileId] = useState<string>('satellite');
+  const [activeTileId, setActiveTileId] = useState<string>('gistda');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [selectedSatName, setSelectedSatName] = useState<string>('GLOBALSTAR M074');
   const [orbitMode, setOrbitMode] = useState<'selected' | 'in_coverage' | 'all' | 'none'>('in_coverage');

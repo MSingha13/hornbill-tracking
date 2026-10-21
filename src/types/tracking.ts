@@ -28,6 +28,8 @@ export interface MapLayerConfig {
   url: string;
   attribution: string;
   maxZoom: number;
+  tileSize?: number;
+  zoomOffset?: number;
 }
 
 export type AssetFilterType = 'ALL' | 'KKOZ01' | 'KKOZ02';

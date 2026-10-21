@@ -12,6 +12,7 @@ import { LatestDetailCard } from './components/LatestDetailCard';
 import { HistoryTable, AvailableDateOption } from './components/HistoryTable';
 import { SpeciesInfoView } from './components/SpeciesInfoView';
 import { SatMapView } from './components/SatMapView';
+import { UserManualView } from './components/UserManualView';
 import { TrackingRecord, TrackingApiResponse, AssetFilterType, normalizeAssetId } from './types/tracking';
 import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey } from './utils/formatters';
 import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
@@ -604,6 +605,13 @@ export default function App() {
           {currentTab === 'satmap' && (
             <div className="max-w-7xl mx-auto">
               <SatMapView />
+            </div>
+          )}
+
+          {/* Tab 6: Complete User Manual & Documentation */}
+          {currentTab === 'manual' && (
+            <div className="max-w-7xl mx-auto">
+              <UserManualView />
             </div>
           )}
         </main>

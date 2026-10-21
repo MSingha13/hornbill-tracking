@@ -4,6 +4,7 @@ import {
   Map,
   Satellite,
   Feather,
+  BookOpen,
   Radio,
   X,
   Layers,
@@ -61,6 +62,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'ข้อมูลนกกก / นิเวศวิทยา',
     subLabel: 'ชีววิทยานกกาฮัง & พฤติกรรม',
     icon: Feather,
+  },
+  {
+    id: 'manual',
+    label: 'คู่มือการใช้งานระบบ',
+    subLabel: 'ขั้นตอนและวิธีใช้ทุกฟังก์ชัน',
+    icon: BookOpen,
   },
 ];
 
