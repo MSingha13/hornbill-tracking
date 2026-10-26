@@ -46,6 +46,16 @@ const GISTDA_BASEMAP_URL =
 
 const MAP_TILES = [
   {
+    id: 'google_hybrid',
+    name: 'Google Maps - Satellite Hybrid Basemap (ค่าเริ่มต้น)',
+    url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
+    maxZoom: 20,
+    tileSize: 256,
+    zoomOffset: 0,
+    subdomains: ['0', '1', '2', '3'],
+  },
+  {
     id: 'gistda',
     name: 'แผนที่ GISTDA (Basemap ล่าสุด)',
     url: GISTDA_BASEMAP_URL,
@@ -82,7 +92,7 @@ export const GlobalstarLiveMap: React.FC<{ className?: string }> = ({ className 
   const satLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const beamLayerGroupRef = useRef<L.LayerGroup | null>(null);
 
-  const [activeTileId, setActiveTileId] = useState<string>('gistda');
+  const [activeTileId, setActiveTileId] = useState<string>('google_hybrid');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [selectedSatName, setSelectedSatName] = useState<string>('GLOBALSTAR M074');
   const [orbitMode, setOrbitMode] = useState<'selected' | 'in_coverage' | 'all' | 'none'>('in_coverage');
@@ -227,7 +237,8 @@ export const GlobalstarLiveMap: React.FC<{ className?: string }> = ({ className 
         maxZoom: tileConfig.maxZoom,
         attribution: tileConfig.attribution,
         tileSize: tileConfig.tileSize || 256,
-        zoomOffset: tileConfig.zoomOffset || 0
+        zoomOffset: tileConfig.zoomOffset || 0,
+        subdomains: (tileConfig as any).subdomains || 'abc',
       }).addTo(map);
       tileLayerRef.current = tileLayer;
 
@@ -299,7 +310,8 @@ export const GlobalstarLiveMap: React.FC<{ className?: string }> = ({ className 
       maxZoom: tileConfig.maxZoom,
       attribution: tileConfig.attribution,
       tileSize: tileConfig.tileSize || 256,
-      zoomOffset: tileConfig.zoomOffset || 0
+      zoomOffset: tileConfig.zoomOffset || 0,
+      subdomains: (tileConfig as any).subdomains || 'abc',
     }).addTo(mapRef.current);
     tileLayerRef.current = newTile;
   }, [activeTileId]);

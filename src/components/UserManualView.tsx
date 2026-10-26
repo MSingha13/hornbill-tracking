@@ -15,13 +15,6 @@ import {
   ChevronUp,
   Activity,
   ShieldCheck,
-  Printer,
-  FileText,
-  Loader2,
-  Eye,
-  Check,
-  Calendar,
-  Sparkles,
 } from 'lucide-react';
 import {
   gistdaLogo,
@@ -35,8 +28,6 @@ import {
 } from '../assets/assets';
 
 export const UserManualView: React.FC = () => {
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-  const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [allExpanded, setAllExpanded] = useState<boolean>(true);
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -70,73 +61,6 @@ export const UserManualView: React.FC = () => {
     });
   };
 
-  // Browser Native Print dialog (Save as PDF)
-  const handlePrint = () => {
-    // Ensure all sections are expanded before printing
-    setExpandedSections({
-      sec1: true,
-      sec2: true,
-      sec3: true,
-      sec4: true,
-      sec5: true,
-      sec6: true,
-      sec7: true,
-    });
-    setTimeout(() => {
-      window.print();
-    }, 200);
-  };
-
-  // Direct HTML-to-PDF generation via html2pdf.js
-  const handleDownloadPdf = async () => {
-    setIsGeneratingPdf(true);
-    setDownloadSuccess(false);
-
-    // Ensure all sections are expanded for export
-    setExpandedSections({
-      sec1: true,
-      sec2: true,
-      sec3: true,
-      sec4: true,
-      sec5: true,
-      sec6: true,
-      sec7: true,
-    });
-
-    try {
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = (html2pdfModule as any).default || html2pdfModule;
-
-      const element = document.getElementById('printable-user-manual');
-      if (!element) {
-        throw new Error('ไม่พบเอกสารสำหรับแปลงเป็น PDF');
-      }
-
-      const opt = {
-        margin: [8, 8, 8, 8],
-        filename: 'hornbill-tracking-user-manual.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          scrollY: 0,
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 4000);
-    } catch (err) {
-      console.warn('html2pdf generation fallback to native print:', err);
-      window.print();
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* Top Action Toolbar (Hidden in Print) */}
@@ -155,57 +79,16 @@ export const UserManualView: React.FC = () => {
           </p>
         </div>
 
-        {/* Export / Print Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Toggle Sections Button */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleToggleAll}
-            className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 shadow-2xs"
             title={allExpanded ? 'ย่อทุกบท' : 'ขยายทุกบท'}
           >
             {allExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             <span>{allExpanded ? 'ย่อทุกบท' : 'ขยายทุกบท'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-800 transition-all flex items-center gap-1.5 shadow-2xs"
-            title="พิมพ์หรือบันทึกเป็น PDF ผ่านหน้าพิมพ์ของเบราว์เซอร์"
-          >
-            <Printer className="w-3.5 h-3.5 text-slate-600" />
-            <span>พิมพ์ / บันทึก PDF</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownloadPdf}
-            disabled={isGeneratingPdf}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-sm text-white ${
-              isGeneratingPdf
-                ? 'bg-emerald-600/70 cursor-wait'
-                : downloadSuccess
-                ? 'bg-emerald-700 hover:bg-emerald-800'
-                : 'bg-emerald-600 hover:bg-emerald-700 active:scale-95'
-            }`}
-            title="ดาวน์โหลดไฟล์ PDF คู่มือการใช้งานพร้อมรูปภาพ"
-          >
-            {isGeneratingPdf ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>กำลังสร้างไฟล์ PDF...</span>
-              </>
-            ) : downloadSuccess ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span>ดาวน์โหลดสำเร็จ!</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-3.5 h-3.5" />
-                <span>ส่งออกไฟล์ PDF (.pdf)</span>
-              </>
-            )}
           </button>
         </div>
       </div>
@@ -363,7 +246,7 @@ export const UserManualView: React.FC = () => {
                 2
               </div>
               <h2 className="text-lg font-bold text-slate-900">
-                การใช้งานแดชบอร์ดและการอ่านค่าตัวชี้วัด (Dashboard)
+                การใช้งานแดชบอร์ดและการอ่านค่าตัวชี้วัด (Dashboard & KPI Indicators)
               </h2>
             </div>
             <div className="text-slate-400">
@@ -440,7 +323,7 @@ export const UserManualView: React.FC = () => {
           {expandedSections.sec3 && (
             <div className="space-y-4 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
               <p>
-                แผนที่ติดตามการบินเป็นหัวใจหลักในการวิเคราะห์การใช้พื้นที่ป่า โดยระบบได้ตั้งค่า <strong>แผนที่ดาวเทียม GISTDA (Basemap ล่าสุด)</strong> เป็นชั้นข้อมูลเริ่มต้น (Default Layer):
+                แผนที่ติดตามการบินเป็นหัวใจหลักในการวิเคราะห์การใช้พื้นที่ป่า โดยระบบได้ตั้งค่า <strong>Google Maps - Satellite Hybrid Basemap</strong> เป็นชั้นข้อมูลเริ่มต้น (Default Layer):
               </p>
 
               {/* Map Layer Specifications Table */}
@@ -455,22 +338,27 @@ export const UserManualView: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-600">
                     <tr className="bg-emerald-50/50">
-                      <td className="p-2.5 font-bold text-emerald-900">1. แผนที่ดาวเทียม GISTDA (ค่าเริ่มต้น)</td>
+                      <td className="p-2.5 font-bold text-emerald-900">1. Google Maps - Satellite Hybrid (ค่าเริ่มต้น)</td>
+                      <td className="p-2.5 font-mono">256×256</td>
+                      <td className="p-2.5">ภาพถ่ายดาวเทียม Google คมชัดระดับสูง พร้อมชื่อสถานที่ ถนน และขอบเขตภูมิศาสตร์</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 font-bold text-slate-800">2. แผนที่ดาวเทียม GISTDA</td>
                       <td className="p-2.5 font-mono">512×512 (Tile)</td>
                       <td className="p-2.5">ภาพถ่ายดาวเทียมความละเอียดสูงของประเทศไทย แม่นยำ ตรงตามพิกัดจริง</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-slate-800">2. Esri World Imagery</td>
+                      <td className="p-2.5 font-bold text-slate-800">3. Esri World Imagery</td>
                       <td className="p-2.5 font-mono">256×256</td>
                       <td className="p-2.5">ภาพถ่ายดาวเทียมสากล สำหรับดูผืนป่าขนาดใหญ่ข้ามเขตจังหวัด</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-slate-800">3. OpenStreetMap (มาตรฐาน)</td>
+                      <td className="p-2.5 font-bold text-slate-800">4. OpenStreetMap (มาตรฐาน)</td>
                       <td className="p-2.5 font-mono">256×256</td>
                       <td className="p-2.5">แผนที่ลายเส้นถนน ทางหลวง ขอบเขตอุทยาน และชื่อหมู่บ้าน</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-slate-800">4. OpenTopoMap (ภูมิประเทศ)</td>
+                      <td className="p-2.5 font-bold text-slate-800">5. OpenTopoMap (ภูมิประเทศ)</td>
                       <td className="p-2.5 font-mono">256×256</td>
                       <td className="p-2.5">เส้นชั้นความสูง (Contours) ยอดเขา แนวสันเขา และลำห้วย</td>
                     </tr>

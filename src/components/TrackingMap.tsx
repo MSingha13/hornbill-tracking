@@ -39,6 +39,16 @@ const GISTDA_BASEMAP_URL =
 
 const MAP_LAYERS: MapLayerConfig[] = [
   {
+    id: 'google_hybrid',
+    name: 'Google Maps - Satellite Hybrid Basemap (ค่าเริ่มต้น)',
+    url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: '&copy; <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer">Google Maps</a>',
+    maxZoom: 20,
+    tileSize: 256,
+    zoomOffset: 0,
+    subdomains: ['0', '1', '2', '3'],
+  },
+  {
     id: 'gistda',
     name: 'แผนที่ดาวเทียม GISTDA',
     url: GISTDA_BASEMAP_URL,
@@ -93,7 +103,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   const latestMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
 
-  const [activeLayerId, setActiveLayerId] = useState<string>('gistda');
+  const [activeLayerId, setActiveLayerId] = useState<string>('google_hybrid');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
   const [isPlayingReplay, setIsPlayingReplay] = useState<boolean>(false);
   const [replayIndex, setReplayIndex] = useState<number>(0);
@@ -157,6 +167,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         maxZoom: layerConfig.maxZoom,
         tileSize: layerConfig.tileSize || 256,
         zoomOffset: layerConfig.zoomOffset || 0,
+        subdomains: layerConfig.subdomains || 'abc',
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
@@ -200,6 +211,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       maxZoom: layerConfig.maxZoom,
       tileSize: layerConfig.tileSize || 256,
       zoomOffset: layerConfig.zoomOffset || 0,
+      subdomains: layerConfig.subdomains || 'abc',
     }).addTo(mapInstanceRef.current);
 
     tileLayerRef.current = newTileLayer;

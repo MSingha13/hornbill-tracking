@@ -2,7 +2,8 @@
 
 ระบบติดตามพิกัด GPS, สัญญาณอุปกรณ์ และช่วงเวลาการพบเห็นของนกกก (Great Hornbill - *Buceros bicornis*) แบบเรียลไทม์ โดยดึงข้อมูลอัตโนมัติจาก Google Apps Script API พร้อมแผนที่ระบุพิกัดดาวเทียม เส้นทางการบิน และประวัติย้อนหลัง
 
-> 📖 **คู่มือการใช้งานฉบับเต็ม:** ดูรายละเอียดการใช้งานทุกฟังก์ชันได้ที่ **[USER_MANUAL.md](./USER_MANUAL.md)**
+> 📖 **คู่มือการใช้งานฉบับเต็ม:** ดูรายละเอียดการใช้งานทุกฟังก์ชันได้ที่ **[USER_MANUAL.md](./USER_MANUAL.md)**  
+> 📥 **ดาวน์โหลดคู่มือฉบับ PDF พร้อมรูปประกอบ:** **[hornbill-tracking-user-manual.pdf](./hornbill-tracking-user-manual.pdf)**
 
 ![Hornbill Tracking Preview](./src/assets/images/forest_mountains_bg_1790326339362.jpg)
 
@@ -11,7 +12,7 @@
 ## 📌 คุณสมบัติเด่น (Features)
 - 🛰️ **ดึงข้อมูลพิกัด GPS สดอัตโนมัติ**: เชื่อมต่อ Google Apps Script API แบบเรียลไทม์
 - 🗺️ **แผนที่จำลองการบินแบบ Interactive (Leaflet Map)**:
-  - รองรับ 4 เลเยอร์: แผนที่ดาวเทียม GISTDA (Basemap ล่าสุด), Esri World Imagery (ภาพถ่ายดาวเทียม), OpenStreetMap (มาตรฐาน), OpenTopoMap (ภูมิประเทศเทือกเขา)
+  - รองรับ 5 เลเยอร์: Google Maps - Satellite Hybrid Basemap (ค่าเริ่มต้น), แผนที่ดาวเทียม GISTDA, Esri World Imagery (ภาพถ่ายดาวเทียม), OpenStreetMap (มาตรฐาน), OpenTopoMap (ภูมิประเทศเทือกเขา)
   - เส้นทางการบินจำลองเชื่อมโยงทุกจุดพิกัด (Trajectory Flight Path)
   - ไอคอนระบุตำแหน่งล่าสุดพร้อม Radar Pulse Ring
   - ฟังก์ชัน **"เล่นเส้นทางบิน" (Flight Path Replay)** จำลองการเดินทางย้อนหลัง
