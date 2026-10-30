@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Activity,
   ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   gistdaLogo,
@@ -38,6 +39,7 @@ export const UserManualView: React.FC = () => {
     sec5: true,
     sec6: true,
     sec7: true,
+    sec8: true,
   });
 
   const toggleSection = (id: string) => {
@@ -58,6 +60,7 @@ export const UserManualView: React.FC = () => {
       sec5: nextState,
       sec6: nextState,
       sec7: nextState,
+      sec8: nextState,
     });
   };
 
@@ -598,18 +601,22 @@ export const UserManualView: React.FC = () => {
           )}
         </div>
 
-        {/* Section 7: การแก้ไขปัญหาและคำถามที่พบบ่อย */}
+        {/* Section 7: ข้อจำกัดในการใช้งานอุปกรณ์ติดตามนกกาฮัง */}
         <div className="avoid-break space-y-4">
           <div
             onClick={() => toggleSection('sec7')}
-            className="flex items-center justify-between pb-2 border-b border-slate-200 cursor-pointer"
+            className="flex items-center justify-between pb-2 border-b border-amber-200 cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                 7
               </div>
-              <h2 className="text-lg font-bold text-slate-900">
-                การแก้ไขปัญหาเบื้องต้นและข้อแนะนำ (Troubleshooting & FAQs)
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                <span>ข้อจำกัดในการใช้งานอุปกรณ์ติดตามนกกาฮัง (Device Limitations)</span>
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-300 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3 text-amber-700" />
+                  <span>ข้อควรระวังทางเทคนิค</span>
+                </span>
               </h2>
             </div>
             <div className="text-slate-400">
@@ -618,6 +625,126 @@ export const UserManualView: React.FC = () => {
           </div>
 
           {expandedSections.sec7 && (
+            <div className="space-y-3.5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p className="text-slate-700 font-medium">
+                เพื่อให้การวิเคราะห์ข้อมูลพิกัด การประเมินสุขภาพ และการเฝ้าระวังทางชีววิทยาเป็นไปอย่างถูกต้อง โปรดทำความเข้าใจข้อจำกัดทางเทคนิคและสภาวะแวดล้อมดังต่อไปนี้:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* 1 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดด้านการรับสัญญาณ GNSS/GPS
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    พื้นที่ป่าทึบ เรือนยอดไม้หนาแน่น และหุบเขา อาจบดบังสัญญาณจากดาวเทียม ทำให้อุปกรณ์ไม่สามารถระบุตำแหน่งได้อย่างต่อเนื่อง ส่งผลให้จำนวนพิกัดที่บันทึกได้ลดลง
+                  </p>
+                </div>
+
+                {/* 2 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดจากสัญญาณรบกวน GPS Jamming
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    สัญญาณรบกวนคลื่นความถี่วิทยุที่ส่งผลต่อระบบ GNSS อาจทำให้เครื่องรับไม่สามารถรับสัญญาณดาวเทียมเพื่อคำนวณตำแหน่งได้ หรือทำให้การระบุตำแหน่งขาดช่วง ทั้งนี้ การไม่พบพิกัดเพียงอย่างเดียวยังไม่สามารถยืนยันได้ว่าเกิด GPS Jamming
+                  </p>
+                </div>
+
+                {/* 3 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดด้านการส่งข้อมูลผ่านดาวเทียม Globalstar
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    แม้อุปกรณ์จะสามารถระบุตำแหน่ง GNSS ได้แล้ว แต่ข้อมูลอาจไม่สามารถส่งขึ้นไปยังดาวเทียม Globalstar ได้สำเร็จ เนื่องจากสิ่งบดบังท้องฟ้า ภูมิประเทศ สัญญาณรบกวนในย่านความถี่ขาขึ้น (Uplink Interference) หรือสภาพแวดล้อมที่ไม่เหมาะสม ส่งผลให้ข้อมูลตำแหน่งไม่ปรากฏในระบบติดตามตามเวลาที่กำหนด
+                  </p>
+                </div>
+
+                {/* 4 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      4
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดด้านความถี่ในการส่งข้อมูล
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    การตั้งค่าให้รายงานตำแหน่งประมาณ 6 ครั้งต่อวัน หรือเฉลี่ยทุก 4 ชั่วโมง ไม่ได้รับประกันว่าจะได้รับข้อมูลครบทุกครั้ง เนื่องจากการรับพิกัดและการส่งข้อมูลผ่านดาวเทียมอาจไม่สำเร็จในบางช่วงเวลา
+                  </p>
+                </div>
+
+                {/* 5 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      5
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดด้านพลังงาน
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    ระยะเวลาการทำงานขึ้นอยู่กับความจุแบตเตอรี่และปริมาณแสงอาทิตย์ที่ได้รับ หากอุปกรณ์อยู่ใต้เรือนยอดไม้หนาแน่นหรือมีแสงแดดไม่เพียงพอ อาจทำให้การชาร์จพลังงานลดลงและระยะเวลาการทำงานสั้นกว่าที่คาดการณ์ไว้
+                  </p>
+                </div>
+
+                {/* 6 */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs space-y-1.5 transition-all hover:bg-amber-50">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      6
+                    </span>
+                    <strong className="text-amber-950 font-bold text-xs sm:text-sm">
+                      ข้อจำกัดด้านสภาพอากาศและสิ่งแวดล้อม
+                    </strong>
+                  </div>
+                  <p className="text-slate-700 text-xs pl-8.5 leading-relaxed">
+                    ความชื้น ฝน และสภาพพื้นที่ที่มีสิ่งบดบังสัญญาณ อาจส่งผลต่อประสิทธิภาพการรับพิกัด GNSS การรับพลังงานแสงอาทิตย์ และการส่งข้อมูลผ่านดาวเทียม โดยขึ้นอยู่กับสภาพแวดล้อมและลักษณะการติดตั้ง
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 8: การแก้ไขปัญหาและคำถามที่พบบ่อย */}
+        <div className="avoid-break space-y-4">
+          <div
+            onClick={() => toggleSection('sec8')}
+            className="flex items-center justify-between pb-2 border-b border-slate-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                8
+              </div>
+              <h2 className="text-lg font-bold text-slate-900">
+                การแก้ไขปัญหาเบื้องต้นและข้อแนะนำ (Troubleshooting & FAQs)
+              </h2>
+            </div>
+            <div className="text-slate-400">
+              {expandedSections.sec8 ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
+          </div>
+
+          {expandedSections.sec8 && (
             <div className="space-y-3 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
               <div className="space-y-2.5">
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
@@ -634,16 +761,16 @@ export const UserManualView: React.FC = () => {
                     Q2: แผนที่ดาวเทียม GISTDA โหลดช้าหรือไม่แสดงผล?
                   </strong>
                   <p className="text-xs text-slate-600">
-                    ตอบ: ตรวจสอบการเชื่อมต่อเครือข่ายอินเทอร์เน็ต หากใช้งานเครือข่ายภายในองค์กร ให้ตรวจสอบว่าไฟร์วอลล์อนุญาตการเชื่อมต่อพอร์ต 443 ไปยัง <code className="bg-white px-1 py-0.5 rounded border text-[11px]">api-gateway.gistda.or.th</code> หรือไม่ หรือสามารถสลับไปใช้ชั้นข้อมูล Esri Satellite ชั่วคราวได้
+                    ตอบ: ตรวจสอบการเชื่อมต่อเครือข่ายอินเทอร์เน็ต หากใช้งานเครือข่ายภายในองค์กร ให้ตรวจสอบว่าไฟร์วอลล์อนุญาตการเชื่อมต่อพอร์ต 443 ไปยัง <code className="bg-white px-1 py-0.5 rounded border text-[11px]">api-gateway.gistda.or.th</code> หรือไม่ หรือสามารถสลับไปใช้ชั้นข้อมูล Google Maps หรือ Esri Satellite ได้
                   </p>
                 </div>
 
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                   <strong className="text-slate-900 block font-bold mb-1">
-                    Q3: วิธีส่งออกไฟล์ PDF ไปใช้งานหรือจัดพิมพ์เอกสาร?
+                    Q3: ทำไมข้อมูลพิกัดบางช่วงเวลาจึงเว้นว่างหรือไม่พบพิกัด?
                   </strong>
                   <p className="text-xs text-slate-600">
-                    ตอบ: สามารถกดปุ่ม <strong>"ส่งออกไฟล์ PDF (.pdf)"</strong> ที่ด้านบนของหน้านี้ ระบบจะสร้างไฟล์และดาวน์โหลดลงเครื่องทันที หรือกดปุ่ม <strong>"พิมพ์ / บันทึก PDF"</strong> เพื่อสั่งพิมพ์ผ่านเครื่องพิมพ์หรือบันทึกผ่านเบราว์เซอร์
+                    ตอบ: เป็นไปตามข้อจำกัดของอุปกรณ์ตามข้อ 1-6 ข้างต้น เช่น นกอาจเกาะพักในโพรงไม้ทึบ ใต้เรือนยอดไม้หนาแน่น หรือกำลังผ่านแนวหุบเขาที่บดบังสัญญาณดาวเทียม เมื่อนกบินสู่พื้นที่เปิด สัญญาณจะกลับมาเชื่อมต่อโดยอัตโนมัติ
                   </p>
                 </div>
               </div>
