@@ -44,15 +44,8 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
           } border-2 border-white rounded-full`}></div>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             <span>รหัสติดตาม</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
-              isKkoz02
-                ? 'text-blue-700 bg-blue-50 border-blue-200'
-                : 'text-emerald-700 bg-emerald-50 border-emerald-200'
-            }`}>
-              {recordsCount} จุด{filterBadge ? ` • ${filterBadge}` : ''}
-            </span>
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight truncate flex items-center gap-1.5">
             <span>{normAssetId}</span>

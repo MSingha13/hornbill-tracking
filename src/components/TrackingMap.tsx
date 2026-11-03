@@ -732,16 +732,35 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
       </div>
 
       {/* Flight Legend overlay at bottom right */}
-      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-3 z-[400] bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 text-[10px] sm:text-[11px] text-slate-700 flex flex-wrap items-center gap-2 sm:gap-3">
+      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-3 z-[400] bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 text-[10px] sm:text-[11px] text-slate-700 flex flex-wrap items-center gap-2 sm:gap-2.5">
         {/* KKOZ01 track indicator */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
+        <div
+          onClick={() => onSelectAssetFilter?.('KKOZ01')}
+          className={`flex items-center gap-1 sm:gap-1.5 ${
+            onSelectAssetFilter ? 'cursor-pointer hover:opacity-100 transition-opacity' : ''
+          } ${selectedAssetFilter === 'KKOZ02' ? 'opacity-40' : 'opacity-100'}`}
+          title="เส้นทางและพิกัด KKOZ01 (คลิกเพื่อเลือกดู)"
+        >
           <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-emerald-600"></span>
           <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
           <span className="font-bold text-emerald-800">KKOZ01</span>
         </div>
 
+        {/* KKOZ02 track indicator */}
+        <div
+          onClick={() => onSelectAssetFilter?.('KKOZ02')}
+          className={`flex items-center gap-1 sm:gap-1.5 pl-1.5 border-l border-slate-200 ${
+            onSelectAssetFilter ? 'cursor-pointer hover:opacity-100 transition-opacity' : ''
+          } ${selectedAssetFilter === 'KKOZ01' ? 'opacity-40' : 'opacity-100'}`}
+          title="เส้นทางและพิกัด KKOZ02 (คลิกเพื่อเลือกดู)"
+        >
+          <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-blue-600"></span>
+          <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span className="font-bold text-blue-800">KKOZ02</span>
+        </div>
+
         {/* Latest badge */}
-        <div className="flex items-center gap-1 sm:gap-1.5 pl-1 border-l border-slate-200">
+        <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 border-l border-slate-200">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           <span className="font-medium text-slate-600">ล่าสุด</span>
         </div>
