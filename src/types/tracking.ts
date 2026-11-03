@@ -35,6 +35,8 @@ export interface MapLayerConfig {
 
 export type AssetFilterType = 'ALL' | 'KKOZ01' | 'KKOZ02';
 
+export type DateFilterMode = 'live' | '1h' | '24h' | '7d' | '1m' | 'all' | 'specific_date';
+
 export interface AssetMetaConfig {
   id: string;
   normalizedId: 'KKOZ01' | 'KKOZ02';

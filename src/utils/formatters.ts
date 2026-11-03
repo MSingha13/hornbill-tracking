@@ -290,3 +290,41 @@ export function getRecordDateKey(input?: string | TrackingRecord | null): string
   return '';
 }
 
+/**
+ * Resolves accurate epoch timestamp (milliseconds) from record
+ */
+export function getRecordTimestamp(input?: TrackingRecord | string | null): number {
+  if (!input) return 0;
+  if (typeof input === 'object') {
+    if (input.utcTime) {
+      const parts = input.utcTime.trim().split(/[\s:-]+/);
+      if (parts.length >= 5) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        const hh = parseInt(parts[3], 10);
+        const mm = parseInt(parts[4], 10);
+        const ss = parseInt(parts[5] || '0', 10);
+        const ts = Date.UTC(y, m, d, hh, mm, ss);
+        if (!isNaN(ts)) return ts;
+      }
+    }
+    if (input.displayTime) {
+      const d = new Date(input.displayTime);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+    if (input.localTime) {
+      const d = new Date(input.localTime);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+    if (input.recordedAt) {
+      const d = new Date(input.recordedAt.replace(' ', 'T') + '+07:00');
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+  } else if (typeof input === 'string') {
+    const d = new Date(input);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  return 0;
+}
+

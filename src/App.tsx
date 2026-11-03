@@ -14,8 +14,8 @@ import { SpeciesInfoView } from './components/SpeciesInfoView';
 import { SatMapView } from './components/SatMapView';
 import { UserManualView } from './components/UserManualView';
 import { AssetSelector } from './components/AssetSelector';
-import { TrackingRecord, TrackingApiResponse, AssetFilterType, normalizeAssetId } from './types/tracking';
-import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey } from './utils/formatters';
+import { TrackingRecord, TrackingApiResponse, AssetFilterType, DateFilterMode, normalizeAssetId } from './types/tracking';
+import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey, getRecordTimestamp } from './utils/formatters';
 import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
 import { Home, Map, Feather, AlertCircle, CheckCircle2, Menu, Calendar, Satellite } from 'lucide-react';
 
@@ -34,8 +34,8 @@ export default function App() {
     message: string;
   } | null>(null);
 
-  // Filter mode: default to 'five_days' as requested ("ให้แสดง จุด 5 วันล่าสุด")
-  const [filterMode, setFilterMode] = useState<'five_days' | 'latest_day' | 'specific_date'>('five_days');
+  // Filter mode: default to 'live' as requested (Live, 1H, 24H, 7D, 1M, and specific date)
+  const [filterMode, setFilterMode] = useState<DateFilterMode>('live');
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
 
   // 1. Separate data: Filter records by selected asset ('KKOZ01' | 'KKOZ02' | 'ALL')
@@ -107,42 +107,83 @@ export default function App() {
     return found ? found.thaiDate : latestDateThai;
   }, [availableDates, selectedDateKey, latestDateThai]);
 
-  // Date range string for 5 latest days
-  const fiveDaysDateRangeText = useMemo(() => {
-    if (!assetFilteredRecords || assetFilteredRecords.length === 0) return '';
-    const uniqueDates = Array.from(
-      new Set(assetFilteredRecords.map((r) => getRecordDateKey(r)).filter(Boolean))
-    ).sort((a, b) => b.localeCompare(a));
-    const targetDates = uniqueDates.slice(0, 5);
-    if (targetDates.length === 0) return '';
-    if (targetDates.length === 1) {
-      const sample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[0]);
-      return formatThaiDate(sample);
-    }
-    const newestSample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[0]);
-    const oldestSample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[targetDates.length - 1]);
-    return `${formatThaiDate(oldestSample)} - ${formatThaiDate(newestSample)}`;
-  }, [assetFilteredRecords]);
-
-  // Points filtered: 5 latest days by default, or latest day, or user-selected specific date
+  // Points filtered: Live (default), 1H, 24H, 7D, 1M, All, or Specific Date
   const displayedRecords = useMemo(() => {
     if (!assetFilteredRecords || assetFilteredRecords.length === 0) return [];
-    if (filterMode === 'five_days') {
-      const uniqueDates = Array.from(
-        new Set(assetFilteredRecords.map((r) => getRecordDateKey(r)).filter(Boolean))
-      ).sort((a, b) => b.localeCompare(a));
-      const targetDates = new Set(uniqueDates.slice(0, 5));
-      return assetFilteredRecords.filter((r) => targetDates.has(getRecordDateKey(r)));
+
+    if (filterMode === 'live') {
+      // Live mode: show the latest point for each tracked bird or active bird
+      if (selectedAssetFilter === 'ALL') {
+        const kkoz01Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
+        const kkoz02Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+        const list = [kkoz01Latest, kkoz02Latest].filter(Boolean) as TrackingRecord[];
+        return list.length > 0 ? list : [assetFilteredRecords[0]];
+      }
+      return [activeAssetLatestRecord || assetFilteredRecords[0]];
     }
-    if (filterMode === 'latest_day' && latestDateKey) {
-      return assetFilteredRecords.filter((r) => getRecordDateKey(r) === latestDateKey);
+
+    if (filterMode === '1h') {
+      const timestamps = assetFilteredRecords.map(getRecordTimestamp).filter((t) => t > 0);
+      const refTs = timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+      const cutoff = refTs - 3600 * 1000;
+      const matched = assetFilteredRecords.filter((r) => getRecordTimestamp(r) >= cutoff);
+      return matched.length > 0 ? matched : [activeAssetLatestRecord || assetFilteredRecords[0]];
     }
+
+    if (filterMode === '24h') {
+      const timestamps = assetFilteredRecords.map(getRecordTimestamp).filter((t) => t > 0);
+      const refTs = timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+      const cutoff = refTs - 24 * 3600 * 1000;
+      const matched = assetFilteredRecords.filter((r) => getRecordTimestamp(r) >= cutoff);
+      return matched.length > 0 ? matched : [activeAssetLatestRecord || assetFilteredRecords[0]];
+    }
+
+    if (filterMode === '7d') {
+      const timestamps = assetFilteredRecords.map(getRecordTimestamp).filter((t) => t > 0);
+      const refTs = timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+      const cutoff = refTs - 7 * 24 * 3600 * 1000;
+      const matched = assetFilteredRecords.filter((r) => getRecordTimestamp(r) >= cutoff);
+      return matched.length > 0 ? matched : assetFilteredRecords;
+    }
+
+    if (filterMode === '1m') {
+      const timestamps = assetFilteredRecords.map(getRecordTimestamp).filter((t) => t > 0);
+      const refTs = timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+      const cutoff = refTs - 30 * 24 * 3600 * 1000;
+      const matched = assetFilteredRecords.filter((r) => getRecordTimestamp(r) >= cutoff);
+      return matched.length > 0 ? matched : assetFilteredRecords;
+    }
+
+    if (filterMode === 'all') {
+      // อ่านข้อมูลทุกบรรทัด (All lines/records without filtering)
+      return assetFilteredRecords;
+    }
+
     if (filterMode === 'specific_date') {
       const targetKey = selectedDateKey || latestDateKey;
       return assetFilteredRecords.filter((r) => getRecordDateKey(r) === targetKey);
     }
+
     return assetFilteredRecords;
-  }, [assetFilteredRecords, filterMode, latestDateKey, selectedDateKey]);
+  }, [assetFilteredRecords, filterMode, selectedAssetFilter, activeAssetLatestRecord, latestDateKey, selectedDateKey]);
+
+  // Dynamic date/time range label for currently displayed records
+  const filterDateRangeText = useMemo(() => {
+    if (!assetFilteredRecords || assetFilteredRecords.length === 0) return '';
+    if (filterMode === 'live') {
+      const target = activeAssetLatestRecord || assetFilteredRecords[0];
+      return formatThaiDateTime(target);
+    }
+    if (displayedRecords.length === 1) {
+      return formatThaiDateTime(displayedRecords[0]);
+    }
+    if (displayedRecords.length > 1) {
+      const newestSample = displayedRecords[0];
+      const oldestSample = displayedRecords[displayedRecords.length - 1];
+      return `${formatThaiDate(oldestSample)} - ${formatThaiDate(newestSample)}`;
+    }
+    return '';
+  }, [assetFilteredRecords, displayedRecords, filterMode, activeAssetLatestRecord]);
 
   // Reset selectedRecord if selection is not in displayedRecords
   useEffect(() => {
@@ -378,18 +419,35 @@ export default function App() {
               {/* Quick Date Filter Selector Bar */}
               <div className="bg-white p-3 sm:px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${filterMode === 'live' ? 'bg-emerald-500 animate-ping' : 'bg-emerald-500'}`}></span>
                   <span className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-emerald-700" />
                     <span>การแสดงผลพิกัด:</span>
                   </span>
-                  {filterMode === 'five_days' ? (
-                    <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
-                      จุด 5 วันล่าสุด ({fiveDaysDateRangeText || '-'} • {displayedRecords.length} จุด)
+                  {filterMode === 'live' ? (
+                    <span className="font-semibold text-emerald-900 bg-emerald-100/90 px-2.5 py-0.5 rounded-lg border border-emerald-300 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                      <span>พิกัดสดล่าสุด Live ({displayedRecords.length} จุด • {filterDateRangeText || '-'})</span>
                     </span>
-                  ) : filterMode === 'latest_day' ? (
+                  ) : filterMode === '1h' ? (
                     <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
-                      เฉพาะวันล่าสุด ({latestDateThai || '-'} • {displayedRecords.length} จุด)
+                      ย้อนหลัง 1 ชม. (1H • {displayedRecords.length} จุด)
+                    </span>
+                  ) : filterMode === '24h' ? (
+                    <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      ย้อนหลัง 24 ชม. (24H • {displayedRecords.length} จุด • {filterDateRangeText || '-'})
+                    </span>
+                  ) : filterMode === '7d' ? (
+                    <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      ย้อนหลัง 7 วัน (7D • {displayedRecords.length} จุด • {filterDateRangeText || '-'})
+                    </span>
+                  ) : filterMode === '1m' ? (
+                    <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      ย้อนหลัง 1 เดือน (1M • {displayedRecords.length} จุด • {filterDateRangeText || '-'})
+                    </span>
+                  ) : filterMode === 'all' ? (
+                    <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      พิกัดทั้งหมด (อ่านทุกบรรทัด {displayedRecords.length} จุด)
                     </span>
                   ) : (
                     <span className="font-semibold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300">
@@ -398,30 +456,90 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-medium">
+                <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-medium">
+                  {/* Live Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('five_days')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                      filterMode === 'five_days'
+                    onClick={() => setFilterMode('live')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                      filterMode === 'live'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงพิกัด 5 วันล่าสุด"
+                    title="แสดงพิกัดสดล่าสุดแบบเรียลไทม์ (Live)"
                   >
-                    <span>5 วันล่าสุด</span>
+                    <span className={`w-2 h-2 rounded-full ${filterMode === 'live' ? 'bg-emerald-300 animate-pulse' : 'bg-emerald-500'}`}></span>
+                    <span>Live</span>
                   </button>
+
+                  {/* 1H Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('latest_day')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                      filterMode === 'latest_day'
+                    onClick={() => setFilterMode('1h')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '1h'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงเฉพาะพิกัดวันล่าสุด"
+                    title="แสดงพิกัดย้อนหลัง 1 ชั่วโมง (1H)"
                   >
-                    <span>เฉพาะวันล่าสุด</span>
+                    <span>1H</span>
+                  </button>
+
+                  {/* 24H Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('24h')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '24h'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 24 ชั่วโมง (24H)"
+                  >
+                    <span>24H</span>
+                  </button>
+
+                  {/* 7D Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('7d')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '7d'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 7 วัน (7D)"
+                  >
+                    <span>7D</span>
+                  </button>
+
+                  {/* 1M Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('1m')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '1m'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 1 เดือน (1M)"
+                  >
+                    <span>1M</span>
+                  </button>
+
+                  {/* All Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('all')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === 'all'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดทั้งหมด อ่านทุกบรรทัด"
+                  >
+                    <span>ทั้งหมด</span>
                   </button>
 
                   {/* Dropdown to pick date */}
@@ -497,10 +615,18 @@ export default function App() {
                 activeRecord={selectedRecord || latestRecord}
                 recordsCount={displayedRecords.length}
                 filterBadge={
-                  filterMode === 'five_days'
-                    ? '5 วันล่าสุด'
-                    : filterMode === 'latest_day'
-                    ? 'วันล่าสุด'
+                  filterMode === 'live'
+                    ? 'Live (สดล่าสุด)'
+                    : filterMode === '1h'
+                    ? '1 ชม. ล่าสุด (1H)'
+                    : filterMode === '24h'
+                    ? '24 ชม. ล่าสุด (24H)'
+                    : filterMode === '7d'
+                    ? '7 วันล่าสุด (7D)'
+                    : filterMode === '1m'
+                    ? '1 เดือนล่าสุด (1M)'
+                    : filterMode === 'all'
+                    ? 'ทั้งหมด (ทุกบรรทัด)'
                     : `วันที่ ${selectedDateThai}`
                 }
               />
@@ -519,10 +645,18 @@ export default function App() {
                     selectedAssetFilter={selectedAssetFilter}
                     onSelectAssetFilter={handleAssetFilterChange}
                     dateBadgeText={
-                      filterMode === 'five_days'
-                        ? `จุด 5 วันล่าสุด: ${fiveDaysDateRangeText || ''} (${displayedRecords.length} จุด)`
-                        : filterMode === 'latest_day'
-                        ? `เฉพาะวันล่าสุด: ${latestDateThai} (${displayedRecords.length} จุด)`
+                      filterMode === 'live'
+                        ? `● พิกัดสดล่าสุด Live (${displayedRecords.length} จุด • ${filterDateRangeText || ''})`
+                        : filterMode === '1h'
+                        ? `พิกัด 1 ชม. ล่าสุด (1H • ${displayedRecords.length} จุด)`
+                        : filterMode === '24h'
+                        ? `พิกัด 24 ชม. ล่าสุด (24H • ${displayedRecords.length} จุด)`
+                        : filterMode === '7d'
+                        ? `พิกัด 7 วันล่าสุด (7D • ${displayedRecords.length} จุด)`
+                        : filterMode === '1m'
+                        ? `พิกัด 1 เดือนล่าสุด (1M • ${displayedRecords.length} จุด)`
+                        : filterMode === 'all'
+                        ? `พิกัดทั้งหมด: อ่านทุกบรรทัด (${displayedRecords.length} จุด)`
                         : `วันที่ ${selectedDateThai} (${displayedRecords.length} จุด)`
                     }
                     className="flex-1 w-full h-full"
@@ -573,10 +707,18 @@ export default function App() {
                     </span>
                     <span className="text-[11px] sm:text-xs text-slate-500 font-mono">
                       ({displayedRecords.length} จุด{' '}
-                      {filterMode === 'five_days'
-                        ? '• 5 วันล่าสุด'
-                        : filterMode === 'latest_day'
-                        ? `• เฉพาะวันล่าสุด ${latestDateThai}`
+                      {filterMode === 'live'
+                        ? '• Live สดล่าสุด'
+                        : filterMode === '1h'
+                        ? '• 1 ชม. ล่าสุด (1H)'
+                        : filterMode === '24h'
+                        ? '• 24 ชม. ล่าสุด (24H)'
+                        : filterMode === '7d'
+                        ? '• 7 วันล่าสุด (7D)'
+                        : filterMode === '1m'
+                        ? '• 1 เดือนล่าสุด (1M)'
+                        : filterMode === 'all'
+                        ? '• ทั้งหมดทุกวัน (อ่านทุกบรรทัด)'
                         : `• วันที่ ${selectedDateThai}`})
                     </span>
                   </div>
@@ -592,30 +734,90 @@ export default function App() {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-medium">
+                <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-medium">
+                  {/* Live Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('five_days')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                      filterMode === 'five_days'
+                    onClick={() => setFilterMode('live')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                      filterMode === 'live'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงพิกัด 5 วันล่าสุด"
+                    title="แสดงพิกัดสดล่าสุดแบบเรียลไทม์ (Live)"
                   >
-                    <span>5 วันล่าสุด</span>
+                    <span className={`w-2 h-2 rounded-full ${filterMode === 'live' ? 'bg-emerald-300 animate-pulse' : 'bg-emerald-500'}`}></span>
+                    <span>Live</span>
                   </button>
+
+                  {/* 1H Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('latest_day')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                      filterMode === 'latest_day'
+                    onClick={() => setFilterMode('1h')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '1h'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงเฉพาะพิกัดวันล่าสุด"
+                    title="แสดงพิกัดย้อนหลัง 1 ชั่วโมง (1H)"
                   >
-                    <span>เฉพาะวันล่าสุด</span>
+                    <span>1H</span>
+                  </button>
+
+                  {/* 24H Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('24h')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '24h'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 24 ชั่วโมง (24H)"
+                  >
+                    <span>24H</span>
+                  </button>
+
+                  {/* 7D Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('7d')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '7d'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 7 วัน (7D)"
+                  >
+                    <span>7D</span>
+                  </button>
+
+                  {/* 1M Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('1m')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === '1m'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดย้อนหลัง 1 เดือน (1M)"
+                  >
+                    <span>1M</span>
+                  </button>
+
+                  {/* All Button */}
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('all')}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      filterMode === 'all'
+                        ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="แสดงพิกัดทั้งหมด อ่านทุกบรรทัด"
+                  >
+                    <span>ทั้งหมด</span>
                   </button>
 
                   {/* Dropdown to pick date */}
@@ -662,10 +864,18 @@ export default function App() {
                   selectedAssetFilter={selectedAssetFilter}
                   onSelectAssetFilter={handleAssetFilterChange}
                   dateBadgeText={
-                    filterMode === 'five_days'
-                      ? `จุด 5 วันล่าสุด: ${fiveDaysDateRangeText || ''} (${displayedRecords.length} จุด)`
-                      : filterMode === 'latest_day'
-                      ? `เฉพาะวันล่าสุด: ${latestDateThai} (${displayedRecords.length} จุด)`
+                    filterMode === 'live'
+                      ? `● พิกัดสดล่าสุด Live (${displayedRecords.length} จุด • ${filterDateRangeText || ''})`
+                      : filterMode === '1h'
+                      ? `พิกัด 1 ชม. ล่าสุด (1H • ${displayedRecords.length} จุด)`
+                      : filterMode === '24h'
+                      ? `พิกัด 24 ชม. ล่าสุด (24H • ${displayedRecords.length} จุด)`
+                      : filterMode === '7d'
+                      ? `พิกัด 7 วันล่าสุด (7D • ${displayedRecords.length} จุด)`
+                      : filterMode === '1m'
+                      ? `พิกัด 1 เดือนล่าสุด (1M • ${displayedRecords.length} จุด)`
+                      : filterMode === 'all'
+                      ? `พิกัดทั้งหมด: อ่านทุกบรรทัด (${displayedRecords.length} จุด)`
                       : `วันที่ ${selectedDateThai} (${displayedRecords.length} จุด)`
                   }
                   className="h-full"

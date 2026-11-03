@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrackingRecord, AssetFilterType } from '../types/tracking';
+import { TrackingRecord, AssetFilterType, DateFilterMode } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
 import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw, Feather, Radio } from 'lucide-react';
 
@@ -13,8 +13,8 @@ interface HistoryTableProps {
   records: TrackingRecord[];
   allRecordsCount?: number;
   latestDateText?: string;
-  filterMode?: 'five_days' | 'latest_day' | 'specific_date';
-  onToggleFilterMode?: (mode: 'five_days' | 'latest_day' | 'specific_date') => void;
+  filterMode?: DateFilterMode;
+  onToggleFilterMode?: (mode: DateFilterMode) => void;
   availableDates?: AvailableDateOption[];
   selectedDateKey?: string;
   onSelectDateKey?: (dateKey: string) => void;
@@ -33,7 +33,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   records,
   allRecordsCount,
   latestDateText,
-  filterMode = 'five_days',
+  filterMode = 'all',
   onToggleFilterMode,
   availableDates = [],
   selectedDateKey = '',
@@ -50,7 +50,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSizeOption, setPageSizeOption] = useState<'all' | '10' | '25' | '50'>('all');
+
+  const pageSize = pageSizeOption === 'all' ? 99999 : parseInt(pageSizeOption, 10);
 
   const filteredRecords = records.filter((r) => {
     if (!searchTerm) return true;
@@ -80,7 +82,19 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 ประวัติตำแหน่ง
                 <span className="text-[11px] font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {filteredRecords.length} จุด
+                  {filterMode === 'live'
+                    ? `Live (${filteredRecords.length} จุด)`
+                    : filterMode === '1h'
+                    ? `1H (${filteredRecords.length} จุด)`
+                    : filterMode === '24h'
+                    ? `24H (${filteredRecords.length} จุด)`
+                    : filterMode === '7d'
+                    ? `7D (${filteredRecords.length} จุด)`
+                    : filterMode === '1m'
+                    ? `1M (${filteredRecords.length} จุด)`
+                    : filterMode === 'all'
+                    ? `อ่านทุกบรรทัด (${filteredRecords.length} จุด)`
+                    : `${filteredRecords.length} จุด`}
                 </span>
               </h3>
             </div>
@@ -144,37 +158,108 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
 
           {/* Date Filter Controls */}
           {onToggleFilterMode && (
-            <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] font-medium">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] font-medium">
+              {/* Live Button */}
               <button
                 type="button"
                 onClick={() => {
-                  onToggleFilterMode('five_days');
+                  onToggleFilterMode('live');
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  filterMode === 'five_days'
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === 'live'
                     ? 'bg-emerald-800 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="แสดงพิกัด 5 วันล่าสุด"
+                title="แสดงพิกัดสดล่าสุด (Live)"
               >
-                <Calendar className="w-3 h-3" />
-                <span>5 วันล่าสุด</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${filterMode === 'live' ? 'bg-emerald-300 animate-pulse' : 'bg-emerald-500'}`}></span>
+                <span>Live</span>
               </button>
+
+              {/* 1H Button */}
               <button
                 type="button"
                 onClick={() => {
-                  onToggleFilterMode('latest_day');
+                  onToggleFilterMode('1h');
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  filterMode === 'latest_day'
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === '1h'
                     ? 'bg-emerald-800 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="แสดงพิกัดเฉพาะวันล่าสุดที่มีการบันทึก"
+                title="แสดงพิกัดย้อนหลัง 1 ชั่วโมง (1H)"
               >
-                <span>เฉพาะวันล่าสุด</span>
+                <span>1H</span>
+              </button>
+
+              {/* 24H Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('24h');
+                  setCurrentPage(1);
+                }}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === '24h'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัดย้อนหลัง 24 ชั่วโมง (24H)"
+              >
+                <span>24H</span>
+              </button>
+
+              {/* 7D Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('7d');
+                  setCurrentPage(1);
+                }}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === '7d'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัดย้อนหลัง 7 วัน (7D)"
+              >
+                <span>7D</span>
+              </button>
+
+              {/* 1M Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('1m');
+                  setCurrentPage(1);
+                }}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === '1m'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัดย้อนหลัง 1 เดือน (1M)"
+              >
+                <span>1M</span>
+              </button>
+
+              {/* All Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleFilterMode('all');
+                  setCurrentPage(1);
+                }}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  filterMode === 'all'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="แสดงพิกัดทั้งหมด อ่านข้อมูลทุกบรรทัด"
+              >
+                <span>ทั้งหมด</span>
               </button>
 
               {/* Specific Date Dropdown Picker */}
@@ -190,7 +275,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                         setCurrentPage(1);
                       }
                     }}
-                    className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all appearance-none cursor-pointer pr-5 ${
+                    className={`text-[11px] font-medium px-2 py-1 rounded-lg border transition-all appearance-none cursor-pointer pr-5 ${
                       filterMode === 'specific_date'
                         ? 'bg-emerald-800 text-white font-bold border-emerald-800 shadow-xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400'
@@ -481,51 +566,60 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
       </div>
 
       {/* Pagination Bar */}
-      {totalPages > 1 && (
-        <div className="p-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <div>
-            หน้า {currentPage} จาก {totalPages} หน้า
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum = i + 1;
-                if (totalPages > 5 && currentPage > 3) {
-                  pageNum = currentPage - 2 + i;
-                  if (pageNum > totalPages) pageNum = totalPages - (4 - i);
-                }
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-medium text-xs transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-emerald-700 text-white font-bold shadow-xs'
-                        : 'hover:bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+      {/* Table Footer: All Rows Status Bar & Optional Pagination */}
+      <div className="p-3 px-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-600 bg-slate-50/50">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100/80 text-emerald-900 font-semibold border border-emerald-300">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            {pageSizeOption === 'all'
+              ? `อ่านข้อมูลทุกบรรทัด: แสดงครบ ${filteredRecords.length} แถว (จากข้อมูลทั้งหมด ${records.length} แถว)`
+              : `แสดงแถวที่ ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, filteredRecords.length)} จาก ${filteredRecords.length} แถว`}
+          </span>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+            <span>การแสดงผล:</span>
+            <select
+              value={pageSizeOption}
+              onChange={(e) => {
+                setPageSizeOption(e.target.value as any);
+                setCurrentPage(1);
+              }}
+              className="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2 py-0.5 font-medium cursor-pointer"
+            >
+              <option value="all">แสดงทั้งหมดทุกบรรทัด</option>
+              <option value="10">10 แถวต่อหน้า</option>
+              <option value="25">25 แถวต่อหน้า</option>
+              <option value="50">50 แถวต่อหน้า</option>
+            </select>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                title="หน้าก่อนหน้า"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-slate-600 font-medium px-1">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"
+                title="หน้าถัดไป"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
