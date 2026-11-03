@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrackingRecord } from '../types/tracking';
+import { TrackingRecord, normalizeAssetId, getAssetMeta } from '../types/tracking';
 import { formatLatitude, formatLongitude } from '../utils/formatters';
 import { hornbillIcon } from '../assets/assets';
 import { MapPin, BatteryCharging, Thermometer, Zap, BarChart2 } from 'lucide-react';
@@ -9,9 +9,10 @@ interface MetricCardsProps {
   activeRecord?: TrackingRecord | null;
   recordsCount: number;
   filterBadge?: string;
+  selectedAssetFilter?: string;
 }
 
-export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, recordsCount, filterBadge }) => {
+export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, recordsCount, filterBadge, selectedAssetFilter }) => {
   const current = activeRecord || latest;
   const isSelectedHistorical = Boolean(
     activeRecord &&
@@ -19,9 +20,9 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
     (activeRecord.positionId ? activeRecord.positionId !== latest.positionId : activeRecord.recordedAt !== latest.recordedAt)
   );
 
-  const rawAssetId = current?.assetId || 'KKOZ01';
-  const assetId = rawAssetId.toUpperCase().replace(/O/g, '0');
-  const isKkoz02 = assetId.includes('2');
+  const normAssetId = normalizeAssetId(current?.assetId);
+  const assetMeta = getAssetMeta(current?.assetId);
+  const isKkoz02 = normAssetId === 'KKOZ02';
   const address = current?.address || '-';
   const batteryNum = current?.battery !== undefined && current?.battery !== '' ? parseFloat(String(current.battery)) : null;
   const tempNum = current?.temperature !== undefined && current?.temperature !== '' ? parseFloat(String(current.temperature)) : null;
@@ -54,7 +55,12 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
             </span>
           </div>
           <div className="text-xl font-bold text-slate-900 tracking-tight truncate flex items-center gap-1.5">
-            <span>{assetId}</span>
+            <span>{normAssetId}</span>
+            <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md ${
+              isKkoz02 ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              {assetMeta.subName}
+            </span>
           </div>
           <div className="text-xs text-slate-500 truncate mt-0.5">
             Great Hornbill <span className="text-emerald-700 font-medium">นกกาฮัง (Buceros bicornis)</span>

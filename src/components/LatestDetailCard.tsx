@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrackingRecord } from '../types/tracking';
+import { TrackingRecord, normalizeAssetId, getAssetMeta } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
 import { hornbillPortrait } from '../assets/assets';
 import { MapPin, Battery, Thermometer, Clock, RotateCcw } from 'lucide-react';
@@ -24,7 +24,9 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
     (activeRecord.positionId ? activeRecord.positionId !== latest.positionId : activeRecord.recordedAt !== latest.recordedAt)
   );
 
-  const assetId = current?.assetId || 'KKOZ01';
+  const normAssetId = normalizeAssetId(current?.assetId);
+  const assetMeta = getAssetMeta(current?.assetId);
+  const isKkoz02 = normAssetId === 'KKOZ02';
   const dateStr = formatThaiDate(current);
   const timeStr = formatThaiTime(current);
 
@@ -108,8 +110,15 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
           <div className="flex items-center justify-between py-1 border-b border-slate-50">
             <span className="text-slate-500">รหัสติดตาม</span>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold font-mono px-2 py-0.5 rounded text-[11px] bg-emerald-100 text-emerald-900 border border-emerald-200">
-                {assetId}
+              <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] border ${
+                isKkoz02
+                  ? 'bg-blue-100 text-blue-900 border-blue-200'
+                  : 'bg-emerald-100 text-emerald-900 border-emerald-200'
+              }`}>
+                {normAssetId}
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium">
+                ({assetMeta.subName})
               </span>
             </div>
           </div>

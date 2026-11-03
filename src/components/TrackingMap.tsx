@@ -609,14 +609,61 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           )}
         </div>
 
-        {/* Active Target Indicator: KKOZ01 */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs font-bold text-emerald-800">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-emerald-300 animate-pulse"></span>
-          <span>KKOZ01</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 font-mono">
-            {records.length} จุด
-          </span>
-        </div>
+        {/* Active Target Indicator / Asset Switcher */}
+        {onSelectAssetFilter ? (
+          <div className="flex items-center gap-1 p-1 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs">
+            <button
+              onClick={() => onSelectAssetFilter('KKOZ01')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                selectedAssetFilter === 'KKOZ01'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
+              }`}
+              title="ดูเฉพาะ KKOZ01 (เขาเขียว)"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KKOZ01' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+              <span>KKOZ01</span>
+            </button>
+            <button
+              onClick={() => onSelectAssetFilter('KKOZ02')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                selectedAssetFilter === 'KKOZ02'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'
+              }`}
+              title="ดูเฉพาะ KKOZ02 (ชุดที่ 2)"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KKOZ02' ? 'bg-white' : 'bg-blue-500'}`}></span>
+              <span>KKOZ02</span>
+            </button>
+            <button
+              onClick={() => onSelectAssetFilter('ALL')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                selectedAssetFilter === 'ALL'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+              title="ดูทั้งสองตัวบนแผนที่"
+            >
+              <span>ทั้งหมด</span>
+            </button>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono ml-0.5 font-semibold">
+              {records.length} จุด
+            </span>
+          </div>
+        ) : (
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs font-bold ${
+            selectedAssetFilter === 'KKOZ02' ? 'text-blue-800' : 'text-emerald-800'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${selectedAssetFilter === 'KKOZ02' ? 'bg-blue-500' : 'bg-emerald-500'} ring-1 ring-emerald-300 animate-pulse`}></span>
+            <span>{selectedAssetFilter === 'ALL' ? 'KKOZ01 + KKOZ02' : selectedAssetFilter}</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+              selectedAssetFilter === 'KKOZ02' ? 'bg-blue-100 text-blue-900' : 'bg-emerald-100 text-emerald-900'
+            }`}>
+              {records.length} จุด
+            </span>
+          </div>
+        )}
 
         {/* Date Filter Status Badge */}
         {dateBadgeText && (

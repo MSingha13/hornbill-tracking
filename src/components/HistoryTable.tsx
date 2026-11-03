@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { TrackingRecord } from '../types/tracking';
+import { TrackingRecord, AssetFilterType } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
-import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw, Feather, Radio } from 'lucide-react';
 
 export interface AvailableDateOption {
   dateKey: string;
@@ -23,6 +23,10 @@ interface HistoryTableProps {
   onExportCSV: () => void;
   onRefresh?: () => void;
   isLoading?: boolean;
+  selectedAssetFilter?: AssetFilterType;
+  onSelectAssetFilter?: (asset: AssetFilterType) => void;
+  kkoz01Count?: number;
+  kkoz02Count?: number;
 }
 
 export const HistoryTable: React.FC<HistoryTableProps> = ({
@@ -39,6 +43,10 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   onExportCSV,
   onRefresh,
   isLoading = false,
+  selectedAssetFilter,
+  onSelectAssetFilter,
+  kkoz01Count,
+  kkoz02Count,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,6 +85,62 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               </h3>
             </div>
           </div>
+
+          {/* Asset Filter Pills (KKOZ01 / KKOZ02 / ALL) */}
+          {onSelectAssetFilter && (
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] font-medium">
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectAssetFilter('KKOZ01');
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  selectedAssetFilter === 'KKOZ01'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-emerald-800 hover:bg-white/50'
+                }`}
+                title="ดูเฉพาะข้อมูล KKOZ01"
+              >
+                <Feather className="w-3 h-3 text-emerald-400" />
+                <span>KKOZ01</span>
+                {kkoz01Count !== undefined && <span className="opacity-80 font-mono">({kkoz01Count})</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectAssetFilter('KKOZ02');
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  selectedAssetFilter === 'KKOZ02'
+                    ? 'bg-blue-700 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-blue-800 hover:bg-white/50'
+                }`}
+                title="ดูเฉพาะข้อมูล KKOZ02"
+              >
+                <Radio className="w-3 h-3 text-blue-300" />
+                <span>KKOZ02</span>
+                {kkoz02Count !== undefined && <span className="opacity-80 font-mono">({kkoz02Count})</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectAssetFilter('ALL');
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  selectedAssetFilter === 'ALL'
+                    ? 'bg-slate-900 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                title="ดูข้อมูลรวมทั้งหมด"
+              >
+                <span>ทั้งหมด</span>
+                {allRecordsCount !== undefined && <span className="opacity-80 font-mono">({allRecordsCount})</span>}
+              </button>
+            </div>
+          )}
 
           {/* Date Filter Controls */}
           {onToggleFilterMode && (

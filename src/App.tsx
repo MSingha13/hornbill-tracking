@@ -13,6 +13,7 @@ import { HistoryTable, AvailableDateOption } from './components/HistoryTable';
 import { SpeciesInfoView } from './components/SpeciesInfoView';
 import { SatMapView } from './components/SatMapView';
 import { UserManualView } from './components/UserManualView';
+import { AssetSelector } from './components/AssetSelector';
 import { TrackingRecord, TrackingApiResponse, AssetFilterType, normalizeAssetId } from './types/tracking';
 import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey } from './utils/formatters';
 import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
@@ -37,23 +38,52 @@ export default function App() {
   const [filterMode, setFilterMode] = useState<'five_days' | 'latest_day' | 'specific_date'>('five_days');
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
 
-  // Identify the latest recorded date key (YYYY-MM-DD)
+  // 1. Separate data: Filter records by selected asset ('KKOZ01' | 'KKOZ02' | 'ALL')
+  const assetFilteredRecords = useMemo(() => {
+    if (selectedAssetFilter === 'ALL') {
+      return records;
+    }
+    return records.filter((r) => normalizeAssetId(r.assetId) === selectedAssetFilter);
+  }, [records, selectedAssetFilter]);
+
+  // Counts per asset
+  const kkoz01Count = useMemo(
+    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ01').length,
+    [records]
+  );
+  const kkoz02Count = useMemo(
+    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ02').length,
+    [records]
+  );
+
+  // Active latest record for the selected asset
+  const activeAssetLatestRecord = useMemo(() => {
+    if (selectedAssetFilter === 'KKOZ01') {
+      return records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01') || latestRecord;
+    }
+    if (selectedAssetFilter === 'KKOZ02') {
+      return records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02') || latestRecord;
+    }
+    return latestRecord || records[0];
+  }, [records, selectedAssetFilter, latestRecord]);
+
+  // Identify the latest recorded date key (YYYY-MM-DD) for active asset
   const latestDateKey = useMemo(() => {
-    if (!latestRecord && records.length === 0) return '';
-    return getRecordDateKey(latestRecord || records[0]);
-  }, [latestRecord, records]);
+    if (assetFilteredRecords.length === 0) return '';
+    return getRecordDateKey(activeAssetLatestRecord || assetFilteredRecords[0]);
+  }, [activeAssetLatestRecord, assetFilteredRecords]);
 
   // Thai formatted string for the latest date (e.g. 30 ก.ย. 2569)
   const latestDateThai = useMemo(() => {
-    if (!latestRecord && records.length === 0) return '';
-    return formatThaiDate(latestRecord || records[0]);
-  }, [latestRecord, records]);
+    if (assetFilteredRecords.length === 0) return '';
+    return formatThaiDate(activeAssetLatestRecord || assetFilteredRecords[0]);
+  }, [activeAssetLatestRecord, assetFilteredRecords]);
 
-  // List of all unique recorded dates with Thai label and point count
+  // List of all unique recorded dates with Thai label and point count for active asset
   const availableDates: AvailableDateOption[] = useMemo(() => {
-    if (!records || records.length === 0) return [];
+    if (!assetFilteredRecords || assetFilteredRecords.length === 0) return [];
     const dateMap: Record<string, AvailableDateOption> = {};
-    records.forEach((r) => {
+    assetFilteredRecords.forEach((r) => {
       const key = getRecordDateKey(r);
       if (!key) return;
       if (!dateMap[key]) {
@@ -69,7 +99,7 @@ export default function App() {
     return Object.keys(dateMap)
       .map((k) => dateMap[k])
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
-  }, [records]);
+  }, [assetFilteredRecords]);
 
   // Formatted Thai string for selected date
   const selectedDateThai = useMemo(() => {
@@ -79,40 +109,40 @@ export default function App() {
 
   // Date range string for 5 latest days
   const fiveDaysDateRangeText = useMemo(() => {
-    if (!records || records.length === 0) return '';
+    if (!assetFilteredRecords || assetFilteredRecords.length === 0) return '';
     const uniqueDates = Array.from(
-      new Set(records.map((r) => getRecordDateKey(r)).filter(Boolean))
+      new Set(assetFilteredRecords.map((r) => getRecordDateKey(r)).filter(Boolean))
     ).sort((a, b) => b.localeCompare(a));
     const targetDates = uniqueDates.slice(0, 5);
     if (targetDates.length === 0) return '';
     if (targetDates.length === 1) {
-      const sample = records.find((r) => getRecordDateKey(r) === targetDates[0]);
+      const sample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[0]);
       return formatThaiDate(sample);
     }
-    const newestSample = records.find((r) => getRecordDateKey(r) === targetDates[0]);
-    const oldestSample = records.find((r) => getRecordDateKey(r) === targetDates[targetDates.length - 1]);
+    const newestSample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[0]);
+    const oldestSample = assetFilteredRecords.find((r) => getRecordDateKey(r) === targetDates[targetDates.length - 1]);
     return `${formatThaiDate(oldestSample)} - ${formatThaiDate(newestSample)}`;
-  }, [records]);
+  }, [assetFilteredRecords]);
 
   // Points filtered: 5 latest days by default, or latest day, or user-selected specific date
   const displayedRecords = useMemo(() => {
+    if (!assetFilteredRecords || assetFilteredRecords.length === 0) return [];
     if (filterMode === 'five_days') {
-      if (!records || records.length === 0) return [];
       const uniqueDates = Array.from(
-        new Set(records.map((r) => getRecordDateKey(r)).filter(Boolean))
+        new Set(assetFilteredRecords.map((r) => getRecordDateKey(r)).filter(Boolean))
       ).sort((a, b) => b.localeCompare(a));
       const targetDates = new Set(uniqueDates.slice(0, 5));
-      return records.filter((r) => targetDates.has(getRecordDateKey(r)));
+      return assetFilteredRecords.filter((r) => targetDates.has(getRecordDateKey(r)));
     }
     if (filterMode === 'latest_day' && latestDateKey) {
-      return records.filter((r) => getRecordDateKey(r) === latestDateKey);
+      return assetFilteredRecords.filter((r) => getRecordDateKey(r) === latestDateKey);
     }
     if (filterMode === 'specific_date') {
       const targetKey = selectedDateKey || latestDateKey;
-      return records.filter((r) => getRecordDateKey(r) === targetKey);
+      return assetFilteredRecords.filter((r) => getRecordDateKey(r) === targetKey);
     }
-    return records;
-  }, [records, filterMode, latestDateKey, selectedDateKey]);
+    return assetFilteredRecords;
+  }, [assetFilteredRecords, filterMode, latestDateKey, selectedDateKey]);
 
   // Reset selectedRecord if selection is not in displayedRecords
   useEffect(() => {
@@ -171,19 +201,31 @@ export default function App() {
 
     try {
       if (successData && successData.success) {
-        // Filter out KKOZ02 data ("ตัด data KKOZ02 ออก ยังไม่ต้องโชว์")
-        const rawRecords = (successData.records || []).filter(
-          (r) => normalizeAssetId(r.assetId) !== 'KKOZ02'
-        );
+        // Load all records (both KKOZ01 and KKOZ02)
+        const rawRecords = successData.records || [];
         setRecords(rawRecords);
 
-        // Find latest for current filter default (KKOZ01)
-        const kkoz01Record = rawRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
-        setLatestRecord(kkoz01Record || rawRecords[0]);
+        const kkoz01List = rawRecords.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
+        const kkoz02List = rawRecords.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+
+        // Intelligently select active asset filter if current choice has no data
+        setSelectedAssetFilter((prev) => {
+          if (prev === 'KKOZ01' && kkoz01List.length === 0 && kkoz02List.length > 0) {
+            return 'KKOZ02';
+          }
+          if (prev === 'KKOZ02' && kkoz02List.length === 0 && kkoz01List.length > 0) {
+            return 'KKOZ01';
+          }
+          return prev;
+        });
+
+        // Determine latest record
+        const activeMatch = (selectedAssetFilter === 'KKOZ02' ? kkoz02List[0] : kkoz01List[0]) || rawRecords[0];
+        setLatestRecord(activeMatch);
         setLastUpdated(new Date());
 
         if (isManualTrigger) {
-          const count = successData.records?.length || 0;
+          const count = rawRecords.length;
           setSyncStatus({
             type: 'success',
             message: `อัปเดตข้อมูลพิกัดดาวเทียมล่าสุดเรียบร้อยแล้ว (พบข้อมูล ${count} จุด)`,
@@ -202,7 +244,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedAssetFilter]);
 
   // Initial load and periodic background sync (in sync with ScriptApp 1-hour trigger)
   useEffect(() => {
@@ -216,7 +258,9 @@ export default function App() {
   }, [fetchData]);
 
   const handleExportCSV = () => {
-    exportToCSV(records, `hornbill-tracking-${latestRecord?.assetId || 'KKOZ01'}.csv`);
+    const assetLabel = selectedAssetFilter === 'ALL' ? 'ALL' : selectedAssetFilter;
+    const recordsToExport = displayedRecords.length > 0 ? displayedRecords : assetFilteredRecords;
+    exportToCSV(recordsToExport, `hornbill-tracking-${assetLabel}.csv`);
   };
 
   const handleSelectRecord = (r: TrackingRecord) => {
@@ -311,6 +355,26 @@ export default function App() {
           {/* Tab 1: Dashboard */}
           {currentTab === 'dashboard' && (
             <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
+              {/* Asset Selector Bar: Separate KKOZ01 and KKOZ02 */}
+              <div className="bg-white p-3 sm:px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-xs font-bold text-slate-900">
+                    เลือกรหัสติดตาม (อุปกรณ์):
+                  </span>
+                  <span className="text-[11px] text-slate-500 hidden md:inline">
+                    แยกข้อมูลการบินและการติดตามระหว่าง KKOZ01 และ KKOZ02
+                  </span>
+                </div>
+                <AssetSelector
+                  selectedAsset={selectedAssetFilter}
+                  onChange={handleAssetFilterChange}
+                  kkoz01Count={kkoz01Count}
+                  kkoz02Count={kkoz02Count}
+                  totalCount={records.length}
+                />
+              </div>
+
               {/* Quick Date Filter Selector Bar */}
               <div className="bg-white p-3 sm:px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 text-xs">
@@ -489,6 +553,10 @@ export default function App() {
                 onExportCSV={handleExportCSV}
                 onRefresh={() => fetchData(true)}
                 isLoading={isLoading}
+                selectedAssetFilter={selectedAssetFilter}
+                onSelectAssetFilter={handleAssetFilterChange}
+                kkoz01Count={kkoz01Count}
+                kkoz02Count={kkoz02Count}
               />
             </div>
           )}
@@ -497,19 +565,31 @@ export default function App() {
           {currentTab === 'map' && (
             <div className="h-[calc(100vh-120px)] sm:h-[calc(100vh-140px)] w-full flex flex-col space-y-2 sm:space-y-3">
               <div className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
-                <div className="flex items-center gap-2">
-                  <Map className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm font-bold text-slate-800">
-                    แผนที่ติดตามการบิน
-                  </span>
-                  <span className="text-[11px] sm:text-xs text-slate-500 font-mono">
-                    ({displayedRecords.length} จุด{' '}
-                    {filterMode === 'five_days'
-                      ? '• 5 วันล่าสุด'
-                      : filterMode === 'latest_day'
-                      ? `• เฉพาะวันล่าสุด ${latestDateThai}`
-                      : `• วันที่ ${selectedDateThai}`})
-                  </span>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <Map className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">
+                      แผนที่ติดตามการบิน
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-mono">
+                      ({displayedRecords.length} จุด{' '}
+                      {filterMode === 'five_days'
+                        ? '• 5 วันล่าสุด'
+                        : filterMode === 'latest_day'
+                        ? `• เฉพาะวันล่าสุด ${latestDateThai}`
+                        : `• วันที่ ${selectedDateThai}`})
+                    </span>
+                  </div>
+
+                  {/* Asset Switcher in Map Tab */}
+                  <AssetSelector
+                    selectedAsset={selectedAssetFilter}
+                    onChange={handleAssetFilterChange}
+                    kkoz01Count={kkoz01Count}
+                    kkoz02Count={kkoz02Count}
+                    totalCount={records.length}
+                    compact
+                  />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-medium">
