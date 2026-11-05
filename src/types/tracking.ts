@@ -58,7 +58,7 @@ export const ASSET_META_MAP: Record<'KKOZ01' | 'KKOZ02', AssetMetaConfig> = {
     id: 'KKOZ01',
     normalizedId: 'KKOZ01',
     name: 'KKOZ01',
-    subName: 'เขาเขียว - ชลบุรี',
+    subName: 'ชุดที่ 1',
     tagColor: '#059669', // Emerald
     ringColor: 'ring-emerald-400',
     markerColor: '#059669',
@@ -73,7 +73,7 @@ export const ASSET_META_MAP: Record<'KKOZ01' | 'KKOZ02', AssetMetaConfig> = {
     id: 'KKOZ02',
     normalizedId: 'KKOZ02',
     name: 'KKOZ02',
-    subName: 'ตัวส่งสัญญาณชุดที่ 2',
+    subName: 'ชุดที่ 2',
     tagColor: '#2563eb', // Royal Blue
     ringColor: 'ring-blue-400',
     markerColor: '#2563eb',
