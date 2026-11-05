@@ -27,7 +27,7 @@ export const hornbillCanopyPerch = hornbillCanopyPerchImg;
 export const hornbillFlightCanopy = hornbillFlightCanopyImg;
 export const hornbillCasqueCloseup = hornbillCasqueCloseupImg;
 
-export const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwv_0GdImwmDwDHsxPlrOTo7iGjMMkYHutax33GwC3ml1Dw1wwbKwg1UdHdlSPa11LcNg/exec';
+export const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxWqtKxaTVX9Kac4-5v0oDTUGwolTHh2EzxlVKCcqE8Bdac6WGoISOmSU2ARHkijj5M/exec';
 export const SCRIPT_UPDATE_ACTION = 'updateSpotData';
 export const GAS_PROJECT_URL = 'https://script.google.com/u/1/home/projects/1ygcklZxoHMHLPX6iP1NGSgc091dfCsEu4L1Op46fQ2AqNPRiyouxtrI7/edit';
 
