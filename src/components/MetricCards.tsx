@@ -56,7 +56,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
             </span>
           </div>
           <div className="text-xs text-slate-500 truncate mt-0.5">
-            Great Hornbill <span className="text-emerald-700 font-medium">นกกาฮัง (Buceros bicornis)</span>
+            <span className="text-emerald-700 font-medium">Great Hornbill</span>
           </div>
         </div>
       </div>
