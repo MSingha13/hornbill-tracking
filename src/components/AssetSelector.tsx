@@ -32,7 +32,7 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
             ? 'bg-emerald-600 text-white font-bold shadow-xs ring-2 ring-emerald-300'
             : 'text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 bg-transparent'
         }`}
-        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z01 (เขาเขียว ชลบุรี ตัวที่ 1)"
+        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z01"
       >
         <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KK0Z01' ? 'bg-white' : 'bg-emerald-500'} animate-pulse`}></span>
         <Feather className="w-3.5 h-3.5 flex-shrink-0" />
@@ -60,7 +60,7 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
             ? 'bg-blue-600 text-white font-bold shadow-xs ring-2 ring-blue-300'
             : 'text-slate-700 hover:text-blue-700 hover:bg-blue-50/70 bg-transparent'
         }`}
-        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z02 (เขาเขียว ชลบุรี ตัวที่ 2)"
+        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z02"
       >
         <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KK0Z02' ? 'bg-white' : 'bg-blue-500'} animate-pulse`}></span>
         <Radio className="w-3.5 h-3.5 flex-shrink-0" />
