@@ -14,9 +14,17 @@ import { SpeciesInfoView } from './components/SpeciesInfoView';
 import { SatMapView } from './components/SatMapView';
 import { UserManualView } from './components/UserManualView';
 import { AssetSelector } from './components/AssetSelector';
-import { TrackingRecord, TrackingApiResponse, AssetFilterType, DateFilterMode, normalizeAssetId } from './types/tracking';
+import { TrackingRecord, TrackingApiResponse, AssetFilterType, DateFilterMode, normalizeAssetId, KKOZ01_BASELINE_RECORD } from './types/tracking';
 import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey, getRecordTimestamp } from './utils/formatters';
-import { API_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
+import { API_ENDPOINT, API_SPOT_SYNC_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
+import {
+  SheetSourceConfig,
+  loadSheetSourceConfig,
+  saveSheetSourceConfig,
+  fetchAllRowsFromPublicGoogleSheet,
+  normalizeAndSortRecords,
+} from './utils/googleSheetReader';
+import { GoogleSheetSourceModal } from './components/GoogleSheetSourceModal';
 import { Home, Map, Feather, AlertCircle, CheckCircle2, Menu, Calendar, Satellite } from 'lucide-react';
 
 export default function App() {
@@ -24,7 +32,7 @@ export default function App() {
   const [records, setRecords] = useState<TrackingRecord[]>([]);
   const [latestRecord, setLatestRecord] = useState<TrackingRecord | undefined>(undefined);
   const [selectedRecord, setSelectedRecord] = useState<TrackingRecord | null>(null);
-  const [selectedAssetFilter, setSelectedAssetFilter] = useState<AssetFilterType>('KKOZ01');
+  const [selectedAssetFilter, setSelectedAssetFilter] = useState<AssetFilterType>('KK0Z01');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -37,8 +45,10 @@ export default function App() {
   // Filter mode: default to 'live' as requested (Live, 1H, 24H, 7D, 1M, and specific date)
   const [filterMode, setFilterMode] = useState<DateFilterMode>('live');
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
+  const [sheetSourceConfig, setSheetSourceConfig] = useState<SheetSourceConfig>(() => loadSheetSourceConfig());
+  const [isSheetModalOpen, setIsSheetModalOpen] = useState<boolean>(false);
 
-  // 1. Separate data: Filter records by selected asset ('KKOZ01' | 'KKOZ02' | 'ALL')
+  // 1. Separate data: Filter records by selected asset ('KK0Z01' | 'KK0Z02' | 'ALL')
   const assetFilteredRecords = useMemo(() => {
     if (selectedAssetFilter === 'ALL') {
       return records;
@@ -48,21 +58,21 @@ export default function App() {
 
   // Counts per asset
   const kkoz01Count = useMemo(
-    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ01').length,
+    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z01').length,
     [records]
   );
   const kkoz02Count = useMemo(
-    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ02').length,
+    () => records.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z02').length,
     [records]
   );
 
   // Active latest record for the selected asset
   const activeAssetLatestRecord = useMemo(() => {
-    if (selectedAssetFilter === 'KKOZ01') {
-      return records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01') || latestRecord;
+    if (selectedAssetFilter === 'KK0Z01') {
+      return records.find((r) => normalizeAssetId(r.assetId) === 'KK0Z01') || latestRecord;
     }
-    if (selectedAssetFilter === 'KKOZ02') {
-      return records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02') || latestRecord;
+    if (selectedAssetFilter === 'KK0Z02') {
+      return records.find((r) => normalizeAssetId(r.assetId) === 'KK0Z02') || latestRecord;
     }
     return latestRecord || records[0];
   }, [records, selectedAssetFilter, latestRecord]);
@@ -114,8 +124,8 @@ export default function App() {
     if (filterMode === 'live') {
       // Live mode: show the latest point for each tracked bird or active bird
       if (selectedAssetFilter === 'ALL') {
-        const kkoz01Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
-        const kkoz02Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+        const kkoz01Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KK0Z01');
+        const kkoz02Latest = assetFilteredRecords.find((r) => normalizeAssetId(r.assetId) === 'KK0Z02');
         const list = [kkoz01Latest, kkoz02Latest].filter(Boolean) as TrackingRecord[];
         return list.length > 0 ? list : [assetFilteredRecords[0]];
       }
@@ -199,93 +209,140 @@ export default function App() {
     }
   }, [displayedRecords, selectedRecord]);
 
-  // Fetch tracking data: triggers updateSportdata in Google Apps Script Sheet
-  const fetchData = useCallback(async (isManualTrigger = false) => {
-    setIsLoading(true);
-    setError(null);
+  // Fetch tracking data: reads all rows from Google Sheet via Apps Script Web App (or configured sheet link)
+  const fetchData = useCallback(
+    async (
+      isManualTrigger = false,
+      forceReadAll = false,
+      overrideConfig?: SheetSourceConfig
+    ) => {
+      setIsLoading(true);
+      setError(null);
 
-    const isLocalhostOrXampp =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.protocol === 'file:');
+      const activeConfig = overrideConfig || sheetSourceConfig;
+      const isLocalhostOrXampp =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.protocol === 'file:');
 
-    // URLs to try: direct Google Apps Script first, then local PHP proxy (api.php) if on XAMPP
-    const urlsToTry = [
-      `${API_ENDPOINT}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`,
-      isLocalhostOrXampp ? `api.php?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}` : null,
-    ].filter(Boolean) as string[];
+      let lastError: unknown = null;
+      let combinedRecords: TrackingRecord[] | null = null;
+      let rawCount = 0;
 
-    let lastError: unknown = null;
-    let successData: TrackingApiResponse | null = null;
-
-    for (const url of urlsToTry) {
       try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-          },
-        });
+        // 1. If user configured a public Google Sheet URL directly
+        if (activeConfig.mode === 'public_google_sheet' && activeConfig.sheetUrlOrId) {
+          combinedRecords = await fetchAllRowsFromPublicGoogleSheet(
+            activeConfig.sheetUrlOrId,
+            activeConfig.sheetName
+          );
+          rawCount = combinedRecords.length;
+        } else {
+          // 2. Fetch from Google Apps Script endpoint (default returns all rows in Google Sheet)
+          const targetEndpoint =
+            activeConfig.mode === 'custom_apps_script' && activeConfig.customAppsScriptUrl
+              ? activeConfig.customAppsScriptUrl
+              : API_ENDPOINT;
 
-        if (response.ok) {
-          const data: TrackingApiResponse = await response.json();
-          if (data && data.success) {
-            successData = data;
-            break;
+          // If manual refresh on default endpoint, trigger SPOT sync in background/parallel so new points are captured
+          if (isManualTrigger && !forceReadAll && activeConfig.mode === 'default_apps_script') {
+            fetch(`${API_SPOT_SYNC_ENDPOINT}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`, {
+              method: 'GET',
+              headers: { Accept: 'application/json' },
+            }).catch(() => {
+              // Non-blocking sync trigger
+            });
+          }
+
+          const urlsToTry = [
+            `${targetEndpoint}?action=getAll&limit=all&_t=${Date.now()}`,
+            `${targetEndpoint}?action=${SCRIPT_UPDATE_ACTION}&_t=${Date.now()}`,
+            isLocalhostOrXampp ? `api.php?action=getAll&limit=all&_t=${Date.now()}` : null,
+          ].filter(Boolean) as string[];
+
+          let successData: TrackingApiResponse | null = null;
+
+          for (const url of urlsToTry) {
+            try {
+              const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                  Accept: 'application/json',
+                },
+              });
+
+              if (response.ok) {
+                const data: TrackingApiResponse = await response.json();
+                if (data && data.success && Array.isArray(data.records)) {
+                  successData = data;
+                  break;
+                }
+              }
+            } catch (e) {
+              lastError = e;
+            }
+          }
+
+          if (successData && successData.success) {
+            const rawRecords = successData.records || [];
+            rawCount = rawRecords.length;
+            combinedRecords = normalizeAndSortRecords(rawRecords);
+          } else {
+            throw new Error((successData as any)?.message || 'ไม่สามารถดึงข้อมูลจาก Google Sheet ได้');
           }
         }
-      } catch (e) {
-        lastError = e;
-      }
-    }
 
-    try {
-      if (successData && successData.success) {
-        // Load all records (both KKOZ01 and KKOZ02)
-        const rawRecords = successData.records || [];
-        setRecords(rawRecords);
+        setRecords(combinedRecords);
 
-        const kkoz01List = rawRecords.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
-        const kkoz02List = rawRecords.filter((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+        const kkoz01List = combinedRecords.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z01');
+        const kkoz02List = combinedRecords.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z02');
 
-        // Intelligently select active asset filter if current choice has no data
-        setSelectedAssetFilter((prev) => {
-          if (prev === 'KKOZ01' && kkoz01List.length === 0 && kkoz02List.length > 0) {
-            return 'KKOZ02';
-          }
-          if (prev === 'KKOZ02' && kkoz02List.length === 0 && kkoz01List.length > 0) {
-            return 'KKOZ01';
-          }
-          return prev;
-        });
-
-        // Determine latest record
-        const activeMatch = (selectedAssetFilter === 'KKOZ02' ? kkoz02List[0] : kkoz01List[0]) || rawRecords[0];
+        // Determine latest record for active view
+        const activeMatch =
+          (selectedAssetFilter === 'KK0Z02' ? kkoz02List[0] : kkoz01List[0]) || combinedRecords[0];
         setLatestRecord(activeMatch);
         setLastUpdated(new Date());
 
-        if (isManualTrigger) {
-          const count = rawRecords.length;
+        if (isManualTrigger || forceReadAll) {
           setSyncStatus({
             type: 'success',
-            message: `อัปเดตข้อมูลพิกัดดาวเทียมล่าสุดเรียบร้อยแล้ว (พบข้อมูล ${count} จุด)`,
+            message: forceReadAll
+              ? `อ่านค่าทั้งหมดจาก Google Sheet สำเร็จ (${rawCount} แถว)`
+              : `อัปเดตข้อมูลจาก Google Sheet เรียบร้อยแล้ว (พบข้อมูลทั้งหมด ${rawCount} จุด)`,
           });
           setTimeout(() => {
             setSyncStatus(null);
           }, 5000);
         }
-      } else {
-        throw new Error((successData as any)?.message || 'ไม่สามารถดึงข้อมูลจากสัญญาณ GlobalStar ได้');
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : String(lastError || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        console.warn('Signal fetch issue:', err);
+        setError(`ไม่สามารถเชื่อมต่อข้อมูล Google Sheet ได้ (${msg}) กรุณากดลองใหม่`);
+        if (overrideConfig) {
+          throw err;
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(lastError || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
-      console.warn('Signal fetch issue:', err);
-      setError(`ไม่สามารถเชื่อมต่อสัญญาณดาวเทียมได้ (${msg}) กรุณากดลองใหม่`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedAssetFilter]);
+    },
+    [selectedAssetFilter, sheetSourceConfig]
+  );
+
+  const handleSelectAllFilter = useCallback(() => {
+    setFilterMode('all');
+    fetchData(true, true);
+  }, [fetchData]);
+
+  const handleApplySheetConfig = useCallback(
+    async (newConfig: SheetSourceConfig) => {
+      await fetchData(true, true, newConfig);
+      setSheetSourceConfig(newConfig);
+      saveSheetSourceConfig(newConfig);
+    },
+    [fetchData]
+  );
 
   // Initial load and periodic background sync (in sync with ScriptApp 1-hour trigger)
   useEffect(() => {
@@ -320,11 +377,11 @@ export default function App() {
   const handleAssetFilterChange = (filter: AssetFilterType) => {
     setSelectedAssetFilter(filter);
     setSelectedRecord(null);
-    if (filter === 'KKOZ01') {
-      const kkoz01 = records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ01');
+    if (filter === 'KK0Z01') {
+      const kkoz01 = records.find((r) => normalizeAssetId(r.assetId) === 'KK0Z01');
       if (kkoz01) setLatestRecord(kkoz01);
-    } else if (filter === 'KKOZ02') {
-      const kkoz02 = records.find((r) => normalizeAssetId(r.assetId) === 'KKOZ02');
+    } else if (filter === 'KK0Z02') {
+      const kkoz02 = records.find((r) => normalizeAssetId(r.assetId) === 'KK0Z02');
       if (kkoz02) setLatestRecord(kkoz02);
     } else if (records.length > 0) {
       setLatestRecord(records[0]);
@@ -531,13 +588,13 @@ export default function App() {
                   {/* All Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('all')}
+                    onClick={handleSelectAllFilter}
                     className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
                       filterMode === 'all'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงพิกัดทั้งหมด อ่านทุกบรรทัด"
+                    title="อ่านค่าทั้งหมดทุกบรรทัดใน Google Sheet"
                   >
                     <span>ทั้งหมด</span>
                   </button>
@@ -678,19 +735,26 @@ export default function App() {
                 allRecordsCount={records.length}
                 latestDateText={latestDateThai}
                 filterMode={filterMode}
-                onToggleFilterMode={(mode) => setFilterMode(mode)}
+                onToggleFilterMode={(mode) => {
+                  if (mode === 'all') {
+                    handleSelectAllFilter();
+                  } else {
+                    setFilterMode(mode);
+                  }
+                }}
                 availableDates={availableDates}
                 selectedDateKey={selectedDateKey}
                 onSelectDateKey={(k) => setSelectedDateKey(k)}
                 selectedRecord={selectedRecord}
                 onSelectRecord={handleSelectRecord}
                 onExportCSV={handleExportCSV}
-                onRefresh={() => fetchData(true)}
+                onRefresh={() => fetchData(true, filterMode === 'all')}
                 isLoading={isLoading}
                 selectedAssetFilter={selectedAssetFilter}
                 onSelectAssetFilter={handleAssetFilterChange}
                 kkoz01Count={kkoz01Count}
                 kkoz02Count={kkoz02Count}
+                onOpenSheetConfig={() => setIsSheetModalOpen(true)}
               />
             </div>
           )}
@@ -809,13 +873,13 @@ export default function App() {
                   {/* All Button */}
                   <button
                     type="button"
-                    onClick={() => setFilterMode('all')}
+                    onClick={handleSelectAllFilter}
                     className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
                       filterMode === 'all'
                         ? 'bg-emerald-800 text-white font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="แสดงพิกัดทั้งหมด อ่านทุกบรรทัด"
+                    title="อ่านค่าทั้งหมดทุกบรรทัดใน Google Sheet"
                   >
                     <span>ทั้งหมด</span>
                   </button>
@@ -966,6 +1030,15 @@ export default function App() {
           </button>
         </nav>
       </div>
+
+      {/* Google Sheet Source Configuration Modal */}
+      <GoogleSheetSourceModal
+        isOpen={isSheetModalOpen}
+        onClose={() => setIsSheetModalOpen(false)}
+        config={sheetSourceConfig}
+        currentRecordCount={records.length}
+        onApplyConfig={handleApplySheetConfig}
+      />
     </div>
   );
 }

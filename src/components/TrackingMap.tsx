@@ -11,6 +11,12 @@ import {
 import { formatLatitude, formatLongitude, formatThaiDate, formatThaiTime } from '../utils/formatters';
 import { hornbillIcon } from '../assets/assets';
 import {
+  fetchPointCloudCover,
+  getCloudConditionThai,
+  getWmoWeatherThai,
+  OpenMeteoPointCloudData,
+} from '../services/openMeteo';
+import {
   Layers,
   Crosshair,
   Play,
@@ -20,7 +26,15 @@ import {
   Minimize2,
   Navigation,
   Calendar,
-  Radio,
+  Cloud,
+  CloudSun,
+  ChevronUp,
+  ChevronDown,
+  RefreshCw,
+  X,
+  Thermometer,
+  Droplets,
+  Wind,
 } from 'lucide-react';
 
 interface TrackingMapProps {
@@ -93,7 +107,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   onSelectRecord,
   className = '',
   dateBadgeText,
-  selectedAssetFilter = 'KKOZ01',
+  selectedAssetFilter = 'KK0Z01',
   onSelectAssetFilter,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -110,6 +124,15 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [localAssetFilter, setLocalAssetFilter] = useState<AssetFilterType>(selectedAssetFilter);
   const replayTimerRef = useRef<number | null>(null);
+
+  // Open-Meteo Cloud Summary state (no overlays drawn on map canvas)
+  const [showCloudPanel, setShowCloudPanel] = useState<boolean>(true);
+  const [isCloudExpanded, setIsCloudExpanded] = useState<boolean>(false);
+  const [cloudData, setCloudData] = useState<OpenMeteoPointCloudData | null>(null);
+  const [isCloudLoading, setIsCloudLoading] = useState<boolean>(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
+  const [hoveredCloudHour, setHoveredCloudHour] = useState<{ hourLabel: string; cloudCover: number } | null>(null);
+  const [cloudRefreshTick, setCloudRefreshTick] = useState<number>(0);
 
   // Sync prop changes to local filter
   useEffect(() => {
@@ -129,13 +152,13 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
     let kkoz02Count = 0;
     records.forEach((r) => {
       const norm = normalizeAssetId(r.assetId);
-      if (norm === 'KKOZ01') kkoz01Count++;
-      if (norm === 'KKOZ02') kkoz02Count++;
+      if (norm === 'KK0Z01') kkoz01Count++;
+      if (norm === 'KK0Z02') kkoz02Count++;
     });
     return {
       all: records.length,
-      KKOZ01: kkoz01Count,
-      KKOZ02: kkoz02Count,
+      KK0Z01: kkoz01Count,
+      KK0Z02: kkoz02Count,
     };
   }, [records]);
 
@@ -144,6 +167,72 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
     if (localAssetFilter === 'ALL') return records;
     return records.filter((r) => normalizeAssetId(r.assetId) === localAssetFilter);
   }, [records, localAssetFilter]);
+
+  // Target coordinate for Open-Meteo cloud telemetry (selected record or latest of active asset)
+  const cloudTarget = useMemo(() => {
+    const candidate = selectedRecord || activeRecords[0] || latestRecord;
+    const lat = candidate?.latitude !== undefined ? parseFloat(String(candidate.latitude)) : NaN;
+    const lng = candidate?.longitude !== undefined ? parseFloat(String(candidate.longitude)) : NaN;
+    if (!isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return {
+        lat,
+        lng,
+        assetLabel: normalizeAssetId(candidate?.assetId),
+      };
+    }
+    return {
+      lat: 13.214151,
+      lng: 101.068587,
+      assetLabel: localAssetFilter === 'KK0Z02' ? ('KK0Z02' as const) : ('KK0Z01' as const),
+    };
+  }, [selectedRecord, activeRecords, latestRecord, localAssetFilter]);
+
+  // Fetch real-time Open-Meteo cloud cover for current target coordinate
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsCloudLoading(true);
+    setCloudError(null);
+
+    fetchPointCloudCover(cloudTarget.lat, cloudTarget.lng, controller.signal)
+      .then((res) => {
+        setCloudData(res);
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError') {
+          setCloudError('ไม่สามารถดึงข้อมูลเมฆจาก Open-Meteo ได้');
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsCloudLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [cloudTarget.lat, cloudTarget.lng, cloudRefreshTick]);
+
+  // Hourly series for today (00:00 - 22:00 น.)
+  const hourlySeriesToday = useMemo(() => {
+    if (!cloudData?.hourlyCloudCover?.length) return [];
+    return cloudData.hourlyCloudCover.filter((h) => {
+      const hourNum = parseInt(h.hourLabel.slice(0, 2), 10);
+      return !isNaN(hourNum) && hourNum >= 0 && hourNum <= 22;
+    });
+  }, [cloudData]);
+
+  // Current Bangkok hour (00 - 23) for highlighting active bar
+  const currentBangkokHourStr = useMemo(() => {
+    try {
+      const hour = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        hour12: false,
+      }).format(new Date());
+      return `${hour.padStart(2, '0')}:00`;
+    } catch {
+      return '';
+    }
+  }, [cloudData]);
 
   // Initialize Map
   useEffect(() => {
@@ -239,7 +328,12 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           lng,
           originalIdx,
           assetKey: normalizeAssetId(r.assetId),
-          isValid: !isNaN(lat) && !isNaN(lng),
+          isValid:
+            !isNaN(lat) &&
+            !isNaN(lng) &&
+            !(lat === 0 && lng === 0) &&
+            Math.abs(lat) <= 90 &&
+            Math.abs(lng) <= 180,
         };
       })
       .filter((p) => p.isValid);
@@ -248,8 +342,8 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
 
     // Group valid points by Asset ID so tracks don't cross or mix lines
     const groupedByAsset: Record<string, typeof validPoints> = {
-      KKOZ01: [],
-      KKOZ02: [],
+      KK0Z01: [],
+      KK0Z02: [],
     };
 
     validPoints.forEach((p) => {
@@ -262,7 +356,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
     const allLatLngs: [number, number][] = [];
 
     // Draw track and waypoints for each asset independently
-    (['KKOZ01', 'KKOZ02'] as const).forEach((assetId) => {
+    (['KK0Z01', 'KK0Z02'] as const).forEach((assetId) => {
       const assetPoints = groupedByAsset[assetId];
       if (!assetPoints || assetPoints.length === 0) return;
 
@@ -287,7 +381,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           color: meta.lineColor,
           weight: 3.5,
           opacity: 0.95,
-          dashArray: assetId === 'KKOZ01' ? '8, 8' : '4, 6',
+          dashArray: assetId === 'KK0Z01' ? '8, 8' : '4, 6',
           lineCap: 'round',
         }).addTo(layerGroup);
       }
@@ -314,10 +408,10 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           }).addTo(layerGroup);
 
           // Marker with distinct asset color
-          const badgeBg = assetId === 'KKOZ01' ? 'bg-emerald-700' : 'bg-blue-700';
-          const badgeRing = assetId === 'KKOZ01' ? 'ring-emerald-400' : 'ring-blue-400';
-          const pulseBg = assetId === 'KKOZ01' ? 'bg-emerald-500/30' : 'bg-blue-500/30';
-          const dotBg = assetId === 'KKOZ01' ? 'bg-emerald-600 ring-emerald-500' : 'bg-blue-600 ring-blue-500';
+          const badgeBg = assetId === 'KK0Z01' ? 'bg-emerald-700' : 'bg-blue-700';
+          const badgeRing = assetId === 'KK0Z01' ? 'ring-emerald-400' : 'ring-blue-400';
+          const pulseBg = assetId === 'KK0Z01' ? 'bg-emerald-500/30' : 'bg-blue-500/30';
+          const dotBg = assetId === 'KK0Z01' ? 'bg-emerald-600 ring-emerald-500' : 'bg-blue-600 ring-blue-500';
 
           const latestHtml = `
             <div class="relative flex flex-col items-center pointer-events-auto cursor-pointer" style="position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);">
@@ -363,11 +457,11 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
             <div class="p-3.5 max-w-xs text-slate-800 font-['Prompt']">
               <div class="flex items-center gap-2.5 mb-2.5 pb-2 border-b border-slate-100">
                 <img src="${hornbillIcon}" class="w-9 h-9 rounded-full border-2 ${
-                  assetId === 'KKOZ01' ? 'border-emerald-400' : 'border-blue-400'
+                  assetId === 'KK0Z01' ? 'border-emerald-400' : 'border-blue-400'
                 } shadow-xs" />
                 <div>
                   <div class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                    <span class="font-mono text-base ${assetId === 'KKOZ01' ? 'text-emerald-700' : 'text-blue-700'}">${point.record.assetId || assetId}</span>
+                    <span class="font-mono text-base ${assetId === 'KK0Z01' ? 'text-emerald-700' : 'text-blue-700'}">${point.record.assetId || assetId}</span>
                     <span class="text-[10px] ${meta.badgeBgClass} ${meta.badgeTextClass} font-semibold px-1.5 py-0.5 rounded-full">จุดล่าสุด</span>
                   </div>
                   <div class="text-[11px] text-slate-500 font-medium">${meta.subName}</div>
@@ -375,7 +469,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
               </div>
               <div class="space-y-1.5 text-xs">
                 <div class="flex justify-between"><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record)}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">เวลา (Local Time):</span> <span class="font-bold font-mono ${assetId === 'KKOZ01' ? 'text-emerald-800' : 'text-blue-800'}">${formatThaiTime(point.record)}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">เวลา (Local Time):</span> <span class="font-bold font-mono ${assetId === 'KK0Z01' ? 'text-emerald-800' : 'text-blue-800'}">${formatThaiTime(point.record)}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono font-semibold">${formatLatitude(point.lat)}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono font-semibold">${formatLongitude(point.lng)}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">ระดับแบตเตอรี่:</span> <span class="font-semibold text-emerald-600">${point.record.battery}%</span></div>
@@ -392,7 +486,7 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           marker.addTo(layerGroup);
         } else {
           // Intermediate waypoints
-          const wpBg = assetId === 'KKOZ01' ? 'bg-emerald-600 ring-emerald-800/40' : 'bg-blue-600 ring-blue-800/40';
+          const wpBg = assetId === 'KK0Z01' ? 'bg-emerald-600 ring-emerald-800/40' : 'bg-blue-600 ring-blue-800/40';
 
           const waypointHtml = isSelected
             ? `
@@ -431,12 +525,12 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           marker.bindPopup(`
             <div class="p-3 max-w-xs text-slate-800 font-['Prompt']">
               <div class="font-bold text-sm text-slate-900 mb-1 flex items-center justify-between gap-1.5">
-                <span class="font-mono ${assetId === 'KKOZ01' ? 'text-emerald-700' : 'text-blue-700'}">${point.record.assetId || assetId} • จุดที่ ${seqIndex + 1}</span>
+                <span class="font-mono ${assetId === 'KK0Z01' ? 'text-emerald-700' : 'text-blue-700'}">${point.record.assetId || assetId} • จุดที่ ${seqIndex + 1}</span>
                 ${isSelected ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.2 rounded-full">จุดที่เลือก</span>' : ''}
               </div>
               <div class="space-y-1 text-xs">
                 <div><span class="text-slate-500">วันที่:</span> <span class="font-medium">${formatThaiDate(point.record)}</span></div>
-                <div><span class="text-slate-500">เวลา:</span> <span class="font-bold font-mono ${assetId === 'KKOZ01' ? 'text-emerald-800' : 'text-blue-800'}">${formatThaiTime(point.record)}</span></div>
+                <div><span class="text-slate-500">เวลา:</span> <span class="font-bold font-mono ${assetId === 'KK0Z01' ? 'text-emerald-800' : 'text-blue-800'}">${formatThaiTime(point.record)}</span></div>
                 <div><span class="text-slate-500">ละติจูด (Lat):</span> <span class="font-mono font-semibold">${formatLatitude(point.lat)}</span></div>
                 <div><span class="text-slate-500">ลองจิจูด (Lng):</span> <span class="font-mono font-semibold">${formatLongitude(point.lng)}</span></div>
                 <div><span class="text-slate-500">แบตเตอรี่:</span> ${point.record.battery}% | ${point.record.temperature} °C</div>
@@ -484,7 +578,14 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
     if (!mapInstanceRef.current || !records || records.length === 0) return;
     const latLngs: [number, number][] = records
       .map((r) => [parseFloat(String(r.latitude)), parseFloat(String(r.longitude))] as [number, number])
-      .filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng));
+      .filter(
+        ([lat, lng]) =>
+          !isNaN(lat) &&
+          !isNaN(lng) &&
+          !(lat === 0 && lng === 0) &&
+          Math.abs(lat) <= 90 &&
+          Math.abs(lng) <= 180
+      );
 
     if (latLngs.length > 0) {
       const bounds = L.latLngBounds(latLngs);
@@ -613,28 +714,28 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         {onSelectAssetFilter ? (
           <div className="flex items-center gap-1 p-1 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs">
             <button
-              onClick={() => onSelectAssetFilter('KKOZ01')}
+              onClick={() => onSelectAssetFilter('KK0Z01')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                selectedAssetFilter === 'KKOZ01'
+                selectedAssetFilter === 'KK0Z01'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
               }`}
-              title="ดูเฉพาะ KKOZ01 (เขาเขียว)"
+              title="ดูเฉพาะ KK0Z01 (เขาเขียว)"
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KKOZ01' ? 'bg-white' : 'bg-emerald-500'}`}></span>
-              <span>KKOZ01</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KK0Z01' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+              <span>KK0Z01</span>
             </button>
             <button
-              onClick={() => onSelectAssetFilter('KKOZ02')}
+              onClick={() => onSelectAssetFilter('KK0Z02')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                selectedAssetFilter === 'KKOZ02'
+                selectedAssetFilter === 'KK0Z02'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'
               }`}
-              title="ดูเฉพาะ KKOZ02 (ชุดที่ 2)"
+              title="ดูเฉพาะ KK0Z02 (ชุดที่ 2)"
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KKOZ02' ? 'bg-white' : 'bg-blue-500'}`}></span>
-              <span>KKOZ02</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${selectedAssetFilter === 'KK0Z02' ? 'bg-white' : 'bg-blue-500'}`}></span>
+              <span>KK0Z02</span>
             </button>
             <button
               onClick={() => onSelectAssetFilter('ALL')}
@@ -653,12 +754,12 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
           </div>
         ) : (
           <div className={`flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur rounded-xl shadow-md border border-slate-200 text-xs font-bold ${
-            selectedAssetFilter === 'KKOZ02' ? 'text-blue-800' : 'text-emerald-800'
+            selectedAssetFilter === 'KK0Z02' ? 'text-blue-800' : 'text-emerald-800'
           }`}>
-            <span className={`w-2 h-2 rounded-full ${selectedAssetFilter === 'KKOZ02' ? 'bg-blue-500' : 'bg-emerald-500'} ring-1 ring-emerald-300 animate-pulse`}></span>
-            <span>{selectedAssetFilter === 'ALL' ? 'KKOZ01 + KKOZ02' : selectedAssetFilter}</span>
+            <span className={`w-2 h-2 rounded-full ${selectedAssetFilter === 'KK0Z02' ? 'bg-blue-500' : 'bg-emerald-500'} ring-1 ring-emerald-300 animate-pulse`}></span>
+            <span>{selectedAssetFilter === 'ALL' ? 'ทั้งหมด (ALL)' : selectedAssetFilter}</span>
             <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-              selectedAssetFilter === 'KKOZ02' ? 'bg-blue-100 text-blue-900' : 'bg-emerald-100 text-emerald-900'
+              selectedAssetFilter === 'KK0Z02' ? 'bg-blue-100 text-blue-900' : 'bg-emerald-100 text-emerald-900'
             }`}>
               {records.length} จุด
             </span>
@@ -718,6 +819,23 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         )}
+
+        {/* Open-Meteo Cloud Toggle Button ("เมฆ X%") */}
+        <button
+          type="button"
+          onClick={() => setShowCloudPanel((prev) => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-xl shadow-md border backdrop-blur transition-all active:scale-95 whitespace-nowrap shrink-0 ${
+            showCloudPanel
+              ? 'bg-sky-700 hover:bg-sky-800 text-white border-sky-800'
+              : 'bg-white/95 hover:bg-white text-slate-700 border-slate-200'
+          }`}
+          title="เปิด/ปิดหน้าต่างสรุปปริมาณเมฆแบบเรียลไทม์ (Open-Meteo)"
+        >
+          <Cloud className={`w-3.5 h-3.5 ${showCloudPanel ? 'text-sky-200' : 'text-sky-600'}`} />
+          <span className="tabular-nums">
+            เมฆ {cloudData ? `${Math.round(cloudData.cloudCover)}%` : isCloudLoading ? '...' : '-'}
+          </span>
+        </button>
       </div>
 
       {/* Top Right: Fullscreen Expand/Collapse */}
@@ -731,32 +849,258 @@ export const TrackingMap: React.FC<TrackingMapProps> = ({
         </button>
       </div>
 
+      {/* Bottom Left: Open-Meteo Real-Time Cloud Summary (Collapsed compact bar by default, expandable) */}
+      {showCloudPanel && !isCloudExpanded && (
+        <button
+          type="button"
+          onClick={() => setIsCloudExpanded(true)}
+          className="absolute bottom-7 left-2.5 sm:bottom-8 sm:left-3 z-[400] flex items-center gap-2 px-3.5 py-2 bg-white/95 hover:bg-white backdrop-blur-md rounded-full border border-slate-200/90 shadow-md text-xs transition-all active:scale-95 whitespace-nowrap"
+          title={`ขยายดูรายละเอียดปริมาณเมฆ Open-Meteo (${cloudTarget.assetLabel})`}
+        >
+          <CloudSun className="w-4 h-4 text-sky-600 shrink-0" />
+          <span className="font-bold text-slate-900">เมฆ Open-Meteo:</span>
+          <span className="font-semibold text-sky-700 tabular-nums">
+            {cloudData ? `${Math.round(cloudData.cloudCover)}%` : isCloudLoading ? '...' : '-'}
+          </span>
+          <ChevronUp className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+        </button>
+      )}
+
+      {showCloudPanel && isCloudExpanded && (
+        <div className="absolute bottom-7 left-2.5 sm:bottom-8 sm:left-3 z-[400] w-[246px] sm:w-[272px] max-w-[calc(100%-20px)] bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-lg p-3 text-slate-800">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-1.5 pb-1.5 border-b border-slate-100">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-900 leading-tight">
+                <CloudSun className="w-4 h-4 text-sky-600 shrink-0" />
+                <span className="truncate">เมฆ (Open-Meteo)</span>
+                <span className="text-slate-300 font-normal" aria-hidden="true">·</span>
+                <span className="font-mono text-[10px] text-emerald-700 shrink-0">{cloudTarget.assetLabel}</span>
+              </div>
+              <div className="text-[9.5px] text-slate-400 font-mono tabular-nums leading-tight mt-0.5 truncate">
+                {cloudTarget.lat.toFixed(4)}°N, {cloudTarget.lng.toFixed(4)}°E
+              </div>
+            </div>
+
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setCloudRefreshTick((t) => t + 1)}
+                disabled={isCloudLoading}
+                className="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                title="รีเฟรชข้อมูลเมฆล่าสุด"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isCloudLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCloudExpanded(false)}
+                className="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                title="ย่อหน้าต่างข้อมูลเมฆ"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCloudPanel(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                title="ซ่อนหน้าต่างข้อมูลเมฆ"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content States */}
+          {isCloudLoading && !cloudData ? (
+            <div className="py-3 text-center text-[11px] text-slate-500">
+              กำลังโหลดข้อมูลเมฆ...
+            </div>
+          ) : cloudError && !cloudData ? (
+            <div className="py-2.5 text-center space-y-1.5">
+              <p className="text-[11px] text-rose-700">{cloudError}</p>
+              <button
+                type="button"
+                onClick={() => setCloudRefreshTick((t) => t + 1)}
+                className="px-2.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md"
+              >
+                ลองใหม่
+              </button>
+            </div>
+          ) : cloudData ? (
+            <div className="pt-1.5 space-y-1.5">
+              {/* Total Cloud Cover + Sky Condition */}
+              {(() => {
+                const cond = getCloudConditionThai(cloudData.cloudCover);
+                return (
+                  <div className="flex items-baseline justify-between gap-1.5">
+                    <div className="flex items-baseline gap-1.5 min-w-0">
+                      <span className="text-lg font-bold font-mono tabular-nums text-slate-900 leading-none">
+                        {Math.round(cloudData.cloudCover)}%
+                      </span>
+                      <span className={`text-[11px] font-semibold truncate ${cond.colorClass}`}>
+                        {cond.shortLabel}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 truncate max-w-[105px]" title={getWmoWeatherThai(cloudData.weatherCode)}>
+                      {getWmoWeatherThai(cloudData.weatherCode)}
+                    </span>
+                  </div>
+                );
+              })()}
+
+              {/* Compact Low / Mid / High Cloud Breakdown */}
+              <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100 text-[10px]">
+                <div>
+                  <div className="flex items-center justify-between text-slate-500 mb-0.5 leading-none">
+                    <span>ต่ำ</span>
+                    <span className="font-mono tabular-nums font-semibold text-slate-800">
+                      {Math.round(cloudData.cloudCoverLow)}%
+                    </span>
+                  </div>
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-sky-500 rounded-full"
+                      style={{ width: `${Math.min(100, Math.max(0, cloudData.cloudCoverLow))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-slate-500 mb-0.5 leading-none">
+                    <span>กลาง</span>
+                    <span className="font-mono tabular-nums font-semibold text-slate-800">
+                      {Math.round(cloudData.cloudCoverMid)}%
+                    </span>
+                  </div>
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full"
+                      style={{ width: `${Math.min(100, Math.max(0, cloudData.cloudCoverMid))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-slate-500 mb-0.5 leading-none">
+                    <span>สูง</span>
+                    <span className="font-mono tabular-nums font-semibold text-slate-800">
+                      {Math.round(cloudData.cloudCoverHigh)}%
+                    </span>
+                  </div>
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-slate-500 rounded-full"
+                      style={{ width: `${Math.min(100, Math.max(0, cloudData.cloudCoverHigh))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Compact Weather Strip: Temp, Humidity, Wind */}
+              <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100 text-[10px] font-mono tabular-nums text-slate-700">
+                <span className="inline-flex items-center gap-0.5 whitespace-nowrap" title="อุณหภูมิ (°C)">
+                  <Thermometer className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span className="font-semibold">{cloudData.temperature2m.toFixed(1)}°C</span>
+                </span>
+                <span className="text-slate-200" aria-hidden="true">|</span>
+                <span className="inline-flex items-center gap-0.5 whitespace-nowrap" title="ความชื้นสัมพัทธ์ (%)">
+                  <Droplets className="w-3 h-3 text-sky-500 shrink-0" />
+                  <span className="font-semibold">{Math.round(cloudData.relativeHumidity2m)}%</span>
+                </span>
+                <span className="text-slate-200" aria-hidden="true">|</span>
+                <span className="inline-flex items-center gap-0.5 whitespace-nowrap" title="ความเร็วลม (กม./ชม.)">
+                  <Wind className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span className="font-semibold">{cloudData.windSpeed10m.toFixed(1)}</span>
+                  <span className="text-[9px] font-sans text-slate-400">กม./ชม.</span>
+                </span>
+              </div>
+
+              {/* Compact Hourly Cloud Cover Trend (00:00 - 22:00 น.) */}
+              {hourlySeriesToday.length > 0 && (
+                <div className="pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-[9.5px] mb-1 leading-none">
+                    <span className="font-semibold text-slate-600">
+                      รายชั่วโมง
+                    </span>
+                    <span className="font-mono tabular-nums text-slate-500">
+                      {hoveredCloudHour
+                        ? `${hoveredCloudHour.hourLabel} น. · ${Math.round(hoveredCloudHour.cloudCover)}%`
+                        : '00:00 – 22:00 น.'}
+                    </span>
+                  </div>
+
+                  <div
+                    className="h-7 flex items-end gap-[2px]"
+                    onMouseLeave={() => setHoveredCloudHour(null)}
+                  >
+                    {hourlySeriesToday.map((item) => {
+                      const pct = Math.min(100, Math.max(0, item.cloudCover));
+                      const isCurrentHour = item.hourLabel === currentBangkokHourStr;
+                      const barHeight = Math.max(10, Math.round((pct / 100) * 100));
+                      return (
+                        <button
+                          key={item.time}
+                          type="button"
+                          onMouseEnter={() => setHoveredCloudHour(item)}
+                          onFocus={() => setHoveredCloudHour(item)}
+                          className="flex-1 h-full flex items-end group focus:outline-hidden"
+                          title={`${item.hourLabel} น. — เมฆ ${Math.round(pct)}%`}
+                          aria-label={`เวลา ${item.hourLabel} น. ปริมาณเมฆ ${Math.round(pct)} เปอร์เซ็นต์`}
+                        >
+                          <span
+                            className={`w-full rounded-t-[2px] transition-colors ${
+                              isCurrentHour
+                                ? 'bg-emerald-600'
+                                : 'bg-sky-400/80 group-hover:bg-sky-600'
+                            }`}
+                            style={{ height: `${barHeight}%` }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[8.5px] font-mono tabular-nums text-slate-400 mt-0.5 leading-none">
+                    <span>00</span>
+                    <span>06</span>
+                    <span>12</span>
+                    <span>18</span>
+                    <span>22</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {/* Flight Legend overlay at bottom right */}
       <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-3 z-[400] bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 text-[10px] sm:text-[11px] text-slate-700 flex flex-wrap items-center gap-2 sm:gap-2.5">
-        {/* KKOZ01 track indicator */}
+        {/* KK0Z01 track indicator */}
         <div
-          onClick={() => onSelectAssetFilter?.('KKOZ01')}
+          onClick={() => onSelectAssetFilter?.('KK0Z01')}
           className={`flex items-center gap-1 sm:gap-1.5 ${
             onSelectAssetFilter ? 'cursor-pointer hover:opacity-100 transition-opacity' : ''
-          } ${selectedAssetFilter === 'KKOZ02' ? 'opacity-40' : 'opacity-100'}`}
-          title="เส้นทางและพิกัด KKOZ01 (คลิกเพื่อเลือกดู)"
+          } ${selectedAssetFilter === 'KK0Z02' ? 'opacity-40' : 'opacity-100'}`}
+          title="เส้นทางและพิกัด KK0Z01 (คลิกเพื่อเลือกดู)"
         >
           <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-emerald-600"></span>
           <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-          <span className="font-bold text-emerald-800">KKOZ01</span>
+          <span className="font-bold text-emerald-800">KK0Z01</span>
         </div>
 
-        {/* KKOZ02 track indicator */}
+        {/* KK0Z02 track indicator */}
         <div
-          onClick={() => onSelectAssetFilter?.('KKOZ02')}
+          onClick={() => onSelectAssetFilter?.('KK0Z02')}
           className={`flex items-center gap-1 sm:gap-1.5 pl-1.5 border-l border-slate-200 ${
             onSelectAssetFilter ? 'cursor-pointer hover:opacity-100 transition-opacity' : ''
-          } ${selectedAssetFilter === 'KKOZ01' ? 'opacity-40' : 'opacity-100'}`}
-          title="เส้นทางและพิกัด KKOZ02 (คลิกเพื่อเลือกดู)"
+          } ${selectedAssetFilter === 'KK0Z01' ? 'opacity-40' : 'opacity-100'}`}
+          title="เส้นทางและพิกัด KK0Z02 (คลิกเพื่อเลือกดู)"
         >
           <span className="w-3 sm:w-4 h-0.5 border-t-2 border-dashed border-blue-600"></span>
           <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-          <span className="font-bold text-blue-800">KKOZ02</span>
+          <span className="font-bold text-blue-800">KK0Z02</span>
         </div>
 
         {/* Latest badge */}

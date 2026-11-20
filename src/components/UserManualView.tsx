@@ -147,7 +147,7 @@ export const UserManualView: React.FC = () => {
               </p>
 
               <div className="pt-3 flex items-center gap-4 text-xs text-slate-300 font-mono">
-                <div>รหัสเป้าหมายหลัก: <strong className="text-emerald-400">KKOZ01</strong></div>
+                <div>รหัสเป้าหมายหลัก: <strong className="text-emerald-400">KKOZ01 และ KKOZ02</strong></div>
                 <div>•</div>
                 <div>ดาวเทียม: <strong className="text-emerald-400">Globalstar LEO</strong></div>
               </div>
@@ -200,7 +200,7 @@ export const UserManualView: React.FC = () => {
                   </div>
                   <div className="font-bold text-emerald-950 text-xs">อุปกรณ์ส่งสัญญาณ SPOT</div>
                   <p className="text-[11px] text-slate-600">
-                    ติดตั้งบนหลังนกกาฮัง KKOZ01 ส่งคลื่นวิทยุ L-band (1610-1620 MHz) พร้อมพิกัด GPS อุณหภูมิ และระดับแบตเตอรี่
+                    ติดตั้งบนหลังนกกาฮัง ส่งคลื่นวิทยุ L-band (1610-1620 MHz) พร้อมระบบพิกัด GNSS, อุณหภูมิ และระดับแบตเตอรี่
                   </p>
                 </div>
 
@@ -249,7 +249,7 @@ export const UserManualView: React.FC = () => {
                 2
               </div>
               <h2 className="text-lg font-bold text-slate-900">
-                การใช้งานแดชบอร์ดและการอ่านค่าตัวชี้วัด (Dashboard & KPI Indicators)
+                การใช้งานแดชบอร์ดและการอ่านค่าตัวชี้วัด (Dashboard)
               </h2>
             </div>
             <div className="text-slate-400">
@@ -433,7 +433,7 @@ export const UserManualView: React.FC = () => {
                     <li><em>7D:</em> แสดงพิกัดย้อนหลัง 7 วันล่าสุด</li>
                     <li><em>1M:</em> แสดงพิกัดย้อนหลัง 1 เดือน (30 วัน) ล่าสุด</li>
                     <li><em>ทั้งหมด:</em> แสดงข้อมูลพิกัดทั้งหมดแบบครบถ้วนทุกแถว (อ่านทุกบรรทัด)</li>
-                    <li><em>เลือกเฉพาะวัน:</em> เมนู Dropdown เลือกวันย้อนหลังเพื่อวิเคราะห์การเดินทางเฉพาะวันนั้น</li>
+                    <li><em>เลือกเฉพาะวัน:</em> เมนู Dropdown เลือกวันย้อนหลังเพื่อวิเคราะห์การเดินทางเฉพาะวันนั้น ทั้ง KK0Z01 และ KK0Z02</li>
                   </ul>
                 </li>
                 <li>
@@ -450,7 +450,7 @@ export const UserManualView: React.FC = () => {
           )}
         </div>
 
-        {/* Section 5: เรดาร์สถานีแจ้ซ้อนและวงโคจรดาวเทียม Globalstar */}
+        {/* Section 5: วงโคจรดาวเทียม Globalstar */}
         <div className="avoid-break space-y-4">
           <div
             onClick={() => toggleSection('sec5')}
@@ -461,7 +461,7 @@ export const UserManualView: React.FC = () => {
                 5
               </div>
               <h2 className="text-lg font-bold text-slate-900">
-                เรดาร์สถานีแจ้ซ้อนและวงโคจรดาวเทียม Globalstar (Satellite Radar & Passes)
+                วงโคจรดาวเทียม Globalstar (Satellite Radar & Passes)
               </h2>
             </div>
             <div className="text-slate-400">
@@ -475,7 +475,7 @@ export const UserManualView: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <div className="font-bold text-emerald-400 flex items-center gap-2">
                     <Radio className="w-4 h-4 text-emerald-400" />
-                    <span>สถานีสังเกตการณ์: อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง</span>
+                    <span>อุปกรณ์ติดตามนก: อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง</span>
                   </div>
                   <span className="text-[11px] font-mono text-slate-400">18.8350° N, 99.4715° E</span>
                 </div>

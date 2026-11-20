@@ -18,6 +18,39 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
   onResetToLatest,
 }) => {
   const current = activeRecord || latest;
+
+  if (!current) {
+    return (
+      <div className="bg-white rounded-2xl p-4 lg:p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between h-full">
+        <div>
+          <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-slate-100">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+            <h3 className="font-bold text-slate-700 text-sm">ข้อมูลตำแหน่ง</h3>
+          </div>
+          <div className="relative rounded-xl overflow-hidden aspect-4/3 mb-4 shadow-inner bg-slate-900">
+            <img
+              src={hornbillPortrait}
+              alt="นกกาฮัง Great Hornbill"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+            <div className="absolute bottom-2.5 left-3 right-3 text-white">
+              <div className="font-bold text-sm">นกกาฮัง (Great Hornbill)</div>
+              <div className="text-[10px] text-slate-300 font-mono">Buceros bicornis</div>
+            </div>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
+            <p className="text-xs font-semibold text-slate-700 mb-1">ยังไม่มีข้อมูลสัญญาณพิกัด</p>
+            <p className="text-[11px] text-slate-500">
+              อุปกรณ์อาจยังไม่ได้เปิดส่งสัญญาณ หรืออยู่นอกพื้นที่รับสัญญาณดาวเทียม
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isSelectedHistorical = Boolean(
     activeRecord &&
     latest &&
@@ -26,7 +59,7 @@ export const LatestDetailCard: React.FC<LatestDetailCardProps> = ({
 
   const normAssetId = normalizeAssetId(current?.assetId);
   const assetMeta = getAssetMeta(current?.assetId);
-  const isKkoz02 = normAssetId === 'KKOZ02';
+  const isKkoz02 = normAssetId === 'KK0Z02' || (normAssetId as string) === 'KKOZ02';
   const dateStr = formatThaiDate(current);
   const timeStr = formatThaiTime(current);
 

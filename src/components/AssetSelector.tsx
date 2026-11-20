@@ -21,26 +21,26 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
 }) => {
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white sm:bg-slate-100/90 rounded-2xl border border-slate-200 shadow-xs">
-      {/* KKOZ01 Button */}
+      {/* KK0Z01 Button */}
       <button
         type="button"
-        onClick={() => onChange('KKOZ01')}
-        className={`flex items-center gap-1.5 rounded-xl transition-all ${
+        onClick={() => onChange('KK0Z01')}
+        className={`flex items-center gap-1.5 rounded-xl transition-all cursor-pointer ${
           compact ? 'px-2.5 py-1 text-xs' : 'px-3 sm:px-3.5 py-1.5 text-xs'
         } ${
-          selectedAsset === 'KKOZ01'
+          selectedAsset === 'KK0Z01'
             ? 'bg-emerald-600 text-white font-bold shadow-xs ring-2 ring-emerald-300'
             : 'text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 bg-transparent'
         }`}
-        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KKOZ01 (เขาเขียว ชลบุรี)"
+        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z01 (เขาเขียว ชลบุรี ตัวที่ 1)"
       >
-        <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KKOZ01' ? 'bg-white' : 'bg-emerald-500'} animate-pulse`}></span>
+        <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KK0Z01' ? 'bg-white' : 'bg-emerald-500'} animate-pulse`}></span>
         <Feather className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="font-semibold">KKOZ01</span>
-        <span className="hidden sm:inline font-normal text-[11px] opacity-90">(เขาเขียว)</span>
+        <span className="font-semibold">KK0Z01</span>
+        <span className="hidden sm:inline font-normal text-[11px] opacity-90">(เขาเขียว 1)</span>
         <span
           className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-            selectedAsset === 'KKOZ01'
+            selectedAsset === 'KK0Z01'
               ? 'bg-emerald-800 text-emerald-100'
               : 'bg-emerald-100 text-emerald-800 font-medium'
           }`}
@@ -49,26 +49,26 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
         </span>
       </button>
 
-      {/* KKOZ02 Button */}
+      {/* KK0Z02 Button */}
       <button
         type="button"
-        onClick={() => onChange('KKOZ02')}
-        className={`flex items-center gap-1.5 rounded-xl transition-all ${
+        onClick={() => onChange('KK0Z02')}
+        className={`flex items-center gap-1.5 rounded-xl transition-all cursor-pointer ${
           compact ? 'px-2.5 py-1 text-xs' : 'px-3 sm:px-3.5 py-1.5 text-xs'
         } ${
-          selectedAsset === 'KKOZ02'
+          selectedAsset === 'KK0Z02'
             ? 'bg-blue-600 text-white font-bold shadow-xs ring-2 ring-blue-300'
             : 'text-slate-700 hover:text-blue-700 hover:bg-blue-50/70 bg-transparent'
         }`}
-        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KKOZ02 (ตัวส่งสัญญาณชุดที่ 2)"
+        title="เลือกดูเฉพาะข้อมูลพิกัดนกกาฮัง KK0Z02 (เขาเขียว ชลบุรี ตัวที่ 2)"
       >
-        <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KKOZ02' ? 'bg-white' : 'bg-blue-500'} animate-pulse`}></span>
+        <span className={`w-2 h-2 rounded-full ${selectedAsset === 'KK0Z02' ? 'bg-white' : 'bg-blue-500'} animate-pulse`}></span>
         <Radio className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="font-semibold">KKOZ02</span>
-        <span className="hidden sm:inline font-normal text-[11px] opacity-90">(ชุดที่ 2)</span>
+        <span className="font-semibold">KK0Z02</span>
+        <span className="hidden sm:inline font-normal text-[11px] opacity-90">(เขาเขียว 2)</span>
         <span
           className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-            selectedAsset === 'KKOZ02'
+            selectedAsset === 'KK0Z02'
               ? 'bg-blue-800 text-blue-100'
               : 'bg-blue-100 text-blue-800 font-medium'
           }`}
@@ -77,21 +77,22 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
         </span>
       </button>
 
-      {/* ALL Button */}
+      {/* KK0Z01 & KK0Z02 (ALL) Button */}
       <button
         type="button"
         onClick={() => onChange('ALL')}
-        className={`flex items-center gap-1.5 rounded-xl transition-all ${
+        className={`flex items-center gap-1.5 rounded-xl transition-all cursor-pointer ${
           compact ? 'px-2.5 py-1 text-xs' : 'px-3 sm:px-3.5 py-1.5 text-xs'
         } ${
           selectedAsset === 'ALL'
             ? 'bg-slate-900 text-white font-bold shadow-xs ring-2 ring-slate-400'
             : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/70 bg-transparent'
         }`}
-        title="แสดงข้อมูลพิกัดรวมทั้ง KKOZ01 และ KKOZ02 บนหน้าจอเดียวกัน"
+        title="แสดงข้อมูลพิกัดรวมทั้ง KK0Z01 และ KK0Z02 พร้อมกันบนหน้าจอเดียว"
       >
         <Layers className="w-3.5 h-3.5 flex-shrink-0" />
-        <span>ทั้งหมด (ALL)</span>
+        <span className="font-semibold">ทั้งหมด</span>
+        <span className="font-normal text-[11px] opacity-90">(ALL)</span>
         <span
           className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
             selectedAsset === 'ALL'
@@ -99,7 +100,7 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({
               : 'bg-slate-200 text-slate-700 font-medium'
           }`}
         >
-          {totalCount}
+          {totalCount} จุด
         </span>
       </button>
     </div>

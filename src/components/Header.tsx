@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Menu,
   RefreshCw,
@@ -8,6 +7,7 @@ import {
   ExternalLink,
   Satellite,
   Compass,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { GAS_PROJECT_URL, hornbillIcon } from '../assets/assets';
 
@@ -17,6 +17,8 @@ interface HeaderProps {
   onExportCSV: () => void;
   lastUpdatedTime: string;
   onToggleMobileMenu: () => void;
+  recordsCount?: number;
+  onOpenSheetDetails?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,6 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
   onExportCSV,
   lastUpdatedTime,
   onToggleMobileMenu,
+  recordsCount,
+  onOpenSheetDetails,
 }) => {
   return (
     <header className="bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-2xs">
@@ -60,6 +64,17 @@ export const Header: React.FC<HeaderProps> = ({
                   <Radio className="w-3.5 h-3.5 text-emerald-700" />
                   <span>สัญญาณ GlobalStar</span>
                 </span>
+                {onOpenSheetDetails && (
+                  <button
+                    type="button"
+                    onClick={onOpenSheetDetails}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                    title="อ่านข้อมูลจาก Google Sheet (คลิกเพื่อดูรายละเอียด)"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Google Sheet ({recordsCount ?? 0} จุด)</span>
+                  </button>
+                )}
               </div>
               <p className="text-xs sm:text-sm text-slate-500 truncate leading-tight mt-1 font-normal">
                 “เทคโนโลยีเพื่อการอนุรักษ์ สู่อนาคตที่ยั่งยืน”

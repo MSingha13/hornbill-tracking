@@ -328,3 +328,40 @@ export function getRecordTimestamp(input?: TrackingRecord | string | null): numb
   return 0;
 }
 
+export const THAI_MONTHS_FULL = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+
+/**
+ * Resolves YYYY-MM month key from record
+ */
+export function getRecordMonthKey(input?: TrackingRecord | string | null): string {
+  const dateKey = getRecordDateKey(input);
+  if (dateKey && dateKey.length >= 7) {
+    return dateKey.slice(0, 7);
+  }
+  return '';
+}
+
+/**
+ * Formats YYYY-MM or record into Thai month format (e.g. พฤศจิกายน 2569)
+ */
+export function formatThaiMonth(input?: string | TrackingRecord | null): string {
+  if (!input) return '-';
+  const monthKey =
+    typeof input === 'string' && input.match(/^\d{4}-\d{2}$/)
+      ? input
+      : getRecordMonthKey(input);
+
+  if (!monthKey) return typeof input === 'string' ? input : '-';
+
+  const [yStr, mStr] = monthKey.split('-');
+  const y = parseInt(yStr, 10);
+  const m = parseInt(mStr, 10);
+  if (isNaN(y) || isNaN(m) || m < 1 || m > 12) return monthKey;
+
+  const monthName = THAI_MONTHS_FULL[m - 1];
+  const yearThai = y + 543;
+  return `${monthName} ${yearThai}`;
+}

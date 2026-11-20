@@ -22,7 +22,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ latest, activeRecord, 
 
   const normAssetId = normalizeAssetId(current?.assetId);
   const assetMeta = getAssetMeta(current?.assetId);
-  const isKkoz02 = normAssetId === 'KKOZ02';
+  const isKkoz02 = normAssetId === 'KK0Z02' || (normAssetId as string) === 'KKOZ02';
   const address = current?.address || '-';
   const batteryNum = current?.battery !== undefined && current?.battery !== '' ? parseFloat(String(current.battery)) : null;
   const tempNum = current?.temperature !== undefined && current?.temperature !== '' ? parseFloat(String(current.temperature)) : null;

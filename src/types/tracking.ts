@@ -33,13 +33,13 @@ export interface MapLayerConfig {
   subdomains?: string[] | string;
 }
 
-export type AssetFilterType = 'ALL' | 'KKOZ01' | 'KKOZ02';
+export type AssetFilterType = 'ALL' | 'KK0Z01' | 'KK0Z02';
 
 export type DateFilterMode = 'live' | '1h' | '24h' | '7d' | '1m' | 'all' | 'specific_date';
 
 export interface AssetMetaConfig {
   id: string;
-  normalizedId: 'KKOZ01' | 'KKOZ02';
+  normalizedId: 'KK0Z01' | 'KK0Z02';
   name: string;
   subName: string;
   tagColor: string;
@@ -53,12 +53,12 @@ export interface AssetMetaConfig {
   glowColor: string;
 }
 
-export const ASSET_META_MAP: Record<'KKOZ01' | 'KKOZ02', AssetMetaConfig> = {
-  KKOZ01: {
-    id: 'KKOZ01',
-    normalizedId: 'KKOZ01',
-    name: 'KKOZ01',
-    subName: 'ชุดที่ 1',
+export const ASSET_META_MAP: Record<'KK0Z01' | 'KK0Z02', AssetMetaConfig> = {
+  KK0Z01: {
+    id: 'KK0Z01',
+    normalizedId: 'KK0Z01',
+    name: 'KK0Z01',
+    subName: 'เขาเขียว - ชลบุรี (ตัวที่ 1)',
     tagColor: '#059669', // Emerald
     ringColor: 'ring-emerald-400',
     markerColor: '#059669',
@@ -69,11 +69,11 @@ export const ASSET_META_MAP: Record<'KKOZ01' | 'KKOZ02', AssetMetaConfig> = {
     lineColor: '#059669',
     glowColor: '#064e3b',
   },
-  KKOZ02: {
-    id: 'KKOZ02',
-    normalizedId: 'KKOZ02',
-    name: 'KKOZ02',
-    subName: 'ชุดที่ 2',
+  KK0Z02: {
+    id: 'KK0Z02',
+    normalizedId: 'KK0Z02',
+    name: 'KK0Z02',
+    subName: 'เขาเขียว - ชลบุรี (ตัวที่ 2)',
     tagColor: '#2563eb', // Royal Blue
     ringColor: 'ring-blue-400',
     markerColor: '#2563eb',
@@ -86,16 +86,36 @@ export const ASSET_META_MAP: Record<'KKOZ01' | 'KKOZ02', AssetMetaConfig> = {
   },
 };
 
-export function normalizeAssetId(rawId?: string): 'KKOZ01' | 'KKOZ02' {
-  if (!rawId) return 'KKOZ01';
+export function normalizeAssetId(rawId?: string): 'KK0Z01' | 'KK0Z02' {
+  if (!rawId) return 'KK0Z01';
   const clean = rawId.trim().toUpperCase().replace(/O/g, '0');
   if (clean.includes('2') || clean === 'KK0Z02' || clean === 'KKOZ02') {
-    return 'KKOZ02';
+    return 'KK0Z02';
   }
-  return 'KKOZ01';
+  return 'KK0Z01';
 }
 
 export function getAssetMeta(rawId?: string): AssetMetaConfig {
   const norm = normalizeAssetId(rawId);
   return ASSET_META_MAP[norm];
 }
+
+export const KK0Z01_BASELINE_RECORD: TrackingRecord = {
+  recordedAt: '2026-11-03 08:00:00',
+  assetId: 'KK0Z01',
+  positionId: 'kk0z01-khao-kheow-station',
+  latitude: '13.214151',
+  longitude: '101.068587',
+  displayTime: '11/3/2026 8:00:00 AM',
+  receivedTime: '11/3/2026 8:00:05 AM',
+  utcTime: '2026-11-03 1:00:00',
+  localTime: '2026-11-03T08:00:00Z',
+  battery: '100.00',
+  temperature: '28.00',
+  speed: '0',
+  altitude: '180',
+  address: 'จุดปล่อยและฟื้นฟูนกกาฮัง สวนสัตว์เปิดเขาเขียว, ชลบุรี, ประเทศไทย',
+};
+
+// Alias for backwards compatibility
+export const KKOZ01_BASELINE_RECORD = KK0Z01_BASELINE_RECORD;

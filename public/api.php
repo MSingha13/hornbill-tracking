@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$endpoint = 'https://script.google.com/macros/s/AKfycbwv_0GdImwmDwDHsxPlrOTo7iGjMMkYHutax33GwC3ml1Dw1wwbKwg1UdHdlSPa11LcNg/exec';
+$endpoint = 'https://script.google.com/macros/s/AKfycbxWqtKxaTVX9Kac4-5v0oDTUGwolTHh2EzxlVKCcqE8Bdac6WGoISOmSU2ARHkijj5M/exec';
 
 // Forward query parameters if any (e.g. ?action=updateSpotData)
 $queryString = $_SERVER['QUERY_STRING'] ?? '';

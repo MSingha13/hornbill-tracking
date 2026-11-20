@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrackingRecord, AssetFilterType, DateFilterMode } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
-import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw, Feather, Radio } from 'lucide-react';
+import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw, Feather, Radio, Table2 } from 'lucide-react';
 
 export interface AvailableDateOption {
   dateKey: string;
@@ -27,6 +27,7 @@ interface HistoryTableProps {
   onSelectAssetFilter?: (asset: AssetFilterType) => void;
   kkoz01Count?: number;
   kkoz02Count?: number;
+  onOpenSheetConfig?: () => void;
 }
 
 export const HistoryTable: React.FC<HistoryTableProps> = ({
@@ -47,6 +48,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   onSelectAssetFilter,
   kkoz01Count,
   kkoz02Count,
+  onOpenSheetConfig,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,6 +69,12 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   });
 
   const totalPages = Math.ceil(filteredRecords.length / pageSize) || 1;
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   const currentRecords = filteredRecords.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
@@ -100,41 +108,41 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
             </div>
           </div>
 
-          {/* Asset Filter Pills (KKOZ01 / KKOZ02 / ALL) */}
+          {/* Asset Filter Pills (KK0Z01 / KK0Z02 / ALL) */}
           {onSelectAssetFilter && (
             <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] font-medium">
               <button
                 type="button"
                 onClick={() => {
-                  onSelectAssetFilter('KKOZ01');
+                  onSelectAssetFilter('KK0Z01');
                   setCurrentPage(1);
                 }}
                 className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  selectedAssetFilter === 'KKOZ01'
+                  selectedAssetFilter === 'KK0Z01'
                     ? 'bg-emerald-700 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-emerald-800 hover:bg-white/50'
                 }`}
-                title="ดูเฉพาะข้อมูล KKOZ01"
+                title="ดูเฉพาะข้อมูล KK0Z01"
               >
                 <Feather className="w-3 h-3 text-emerald-400" />
-                <span>KKOZ01</span>
+                <span>KK0Z01</span>
                 {kkoz01Count !== undefined && <span className="opacity-80 font-mono">({kkoz01Count})</span>}
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  onSelectAssetFilter('KKOZ02');
+                  onSelectAssetFilter('KK0Z02');
                   setCurrentPage(1);
                 }}
                 className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  selectedAssetFilter === 'KKOZ02'
+                  selectedAssetFilter === 'KK0Z02'
                     ? 'bg-blue-700 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-blue-800 hover:bg-white/50'
                 }`}
-                title="ดูเฉพาะข้อมูล KKOZ02"
+                title="ดูเฉพาะข้อมูล KK0Z02"
               >
                 <Radio className="w-3 h-3 text-blue-300" />
-                <span>KKOZ02</span>
+                <span>KK0Z02</span>
                 {kkoz02Count !== undefined && <span className="opacity-80 font-mono">({kkoz02Count})</span>}
               </button>
               <button
@@ -339,6 +347,18 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
             />
           </div>
 
+          {onOpenSheetConfig && (
+            <button
+              type="button"
+              onClick={onOpenSheetConfig}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-all active:scale-95"
+              title="ตั้งค่าลิงก์ Google Sheet เพื่ออ่านค่าทั้งหมด"
+            >
+              <Table2 className="w-3.5 h-3.5 text-emerald-700" />
+              <span>ลิงก์ Google Sheet</span>
+            </button>
+          )}
+
           {onRefresh && (
             <button
               onClick={onRefresh}
@@ -397,7 +417,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                         ? 'bg-blue-100 text-blue-900 border border-blue-200'
                         : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
                     }`}>
-                      {r.assetId || 'KKOZ01'}
+                      {r.assetId || 'KK0Z01'}
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-500 flex items-center gap-2">
@@ -511,7 +531,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
                           ? 'bg-blue-100 text-blue-900 border border-blue-200'
                           : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
                       }`}>
-                        {r.assetId || 'KKOZ01'}
+                        {r.assetId || 'KK0Z01'}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-slate-700 whitespace-nowrap">
