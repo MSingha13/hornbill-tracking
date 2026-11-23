@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrackingRecord, AssetFilterType, DateFilterMode } from '../types/tracking';
 import { formatThaiDate, formatThaiTime } from '../utils/formatters';
-import { History, Download, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, RefreshCw, Feather, Radio, Table2 } from 'lucide-react';
+import { History, MapPin, ChevronLeft, ChevronRight, Search, Battery, Thermometer, Calendar, Clock, Feather, Radio } from 'lucide-react';
 
 export interface AvailableDateOption {
   dateKey: string;
@@ -20,14 +20,10 @@ interface HistoryTableProps {
   onSelectDateKey?: (dateKey: string) => void;
   selectedRecord?: TrackingRecord | null;
   onSelectRecord: (record: TrackingRecord) => void;
-  onExportCSV: () => void;
-  onRefresh?: () => void;
-  isLoading?: boolean;
   selectedAssetFilter?: AssetFilterType;
   onSelectAssetFilter?: (asset: AssetFilterType) => void;
   kkoz01Count?: number;
   kkoz02Count?: number;
-  onOpenSheetConfig?: () => void;
 }
 
 export const HistoryTable: React.FC<HistoryTableProps> = ({
@@ -41,14 +37,10 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   onSelectDateKey,
   selectedRecord,
   onSelectRecord,
-  onExportCSV,
-  onRefresh,
-  isLoading = false,
   selectedAssetFilter,
   onSelectAssetFilter,
   kkoz01Count,
   kkoz02Count,
-  onOpenSheetConfig,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -307,31 +299,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
             </div>
           )}
 
-          {/* Quick actions on mobile header */}
-          <div className="sm:hidden flex items-center gap-1.5">
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                disabled={isLoading}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-lg shadow-xs transition-all disabled:opacity-60 active:scale-95"
-                title="คลิกดึงข้อมูลดาวเทียมล่าสุด"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? '...' : 'อัปเดต'}</span>
-              </button>
-            )}
-            <button
-              onClick={onExportCSV}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200"
-              title="ส่งออก CSV"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-700" />
-              <span>CSV</span>
-            </button>
-          </div>
         </div>
 
-        {/* Search, Refresh & Export Buttons (Desktop) */}
+        {/* Search Input */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -346,39 +316,6 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl focus:outline-emerald-500 transition-colors"
             />
           </div>
-
-          {onOpenSheetConfig && (
-            <button
-              type="button"
-              onClick={onOpenSheetConfig}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-all active:scale-95"
-              title="ตั้งค่าลิงก์ Google Sheet เพื่ออ่านค่าทั้งหมด"
-            >
-              <Table2 className="w-3.5 h-3.5 text-emerald-700" />
-              <span>ลิงก์ Google Sheet</span>
-            </button>
-          )}
-
-          {onRefresh && (
-            <button
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-xl shadow-xs transition-all disabled:opacity-60 active:scale-95"
-              title="คลิกดึงข้อมูลดาวเทียมล่าสุด"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isLoading ? 'กำลังอัปเดต...' : 'อัปเดตข้อมูล'}</span>
-            </button>
-          )}
-
-          <button
-            onClick={onExportCSV}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all active:scale-95"
-            title="ส่งออกไฟล์ CSV สำหรับ Excel"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-700" />
-            <span>ส่งออก CSV</span>
-          </button>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
-import { TrackingRecord } from '../types/tracking';
+import * as XLSX from 'xlsx';
+import { TrackingRecord, normalizeAssetId } from '../types/tracking';
 
 const THAI_MONTHS_SHORT = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -195,6 +196,96 @@ export function exportToCSV(records: TrackingRecord[], filename = 'hornbill-trac
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+function buildTrackingWorksheet(records: TrackingRecord[], fallbackAssetId: string): XLSX.WorkSheet {
+  const headers = [
+    'ลำดับ',
+    'รหัสติดตาม',
+    'วันที่',
+    'เวลาท้องถิ่น (Local Time)',
+    'วันที่-เวลาแสดงผล (DisplayTime)',
+    'วันที่-เวลาที่บันทึก (RecordedAt)',
+    'ละติจูด (Latitude)',
+    'ลองจิจูด (Longitude)',
+    'ระดับแบตเตอรี่ (%)',
+    'อุณหภูมิ (°C)',
+    'ความเร็ว (Speed)',
+    'ที่อยู่/พื้นที่ (Address)',
+  ];
+
+  const rows = records.map((r, index) => {
+    const latNum = parseFloat(String(r.latitude));
+    const lngNum = parseFloat(String(r.longitude));
+    const batNum = parseFloat(String(r.battery));
+    const tempNum = parseFloat(String(r.temperature));
+    const speedNum = parseFloat(String(r.speed ?? '0'));
+
+    return [
+      index + 1,
+      r.assetId || fallbackAssetId,
+      formatThaiDate(r),
+      r.localTime || '',
+      r.displayTime || '',
+      r.recordedAt || '',
+      !isNaN(latNum) ? latNum : r.latitude,
+      !isNaN(lngNum) ? lngNum : r.longitude,
+      !isNaN(batNum) ? batNum : r.battery,
+      !isNaN(tempNum) ? tempNum : r.temperature,
+      !isNaN(speedNum) ? speedNum : r.speed || 0,
+      r.address || '',
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!cols'] = [
+    { wch: 8 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 24 },
+    { wch: 24 },
+    { wch: 22 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 15 },
+    { wch: 15 },
+    { wch: 44 },
+  ];
+  return ws;
+}
+
+export function exportToSplitSheetsExcel(
+  records: TrackingRecord[],
+  filename = 'hornbill-tracking-KKOZ01-KKOZ02.xlsx'
+): { kkoz01Count: number; kkoz02Count: number } {
+  const kkoz01Records = records.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z01');
+  const kkoz02Records = records.filter((r) => normalizeAssetId(r.assetId) === 'KK0Z02');
+
+  const wb = XLSX.utils.book_new();
+  const ws1 = buildTrackingWorksheet(kkoz01Records, 'KKOZ01');
+  const ws2 = buildTrackingWorksheet(kkoz02Records, 'KKOZ02');
+
+  XLSX.utils.book_append_sheet(wb, ws1, 'KKOZ01');
+  XLSX.utils.book_append_sheet(wb, ws2, 'KKOZ02');
+
+  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbArray], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  return {
+    kkoz01Count: kkoz01Records.length,
+    kkoz02Count: kkoz02Records.length,
+  };
 }
 
 export function exportToJSON(data: unknown, filename = 'hornbill-tracking-data.json') {

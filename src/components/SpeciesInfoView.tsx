@@ -189,11 +189,11 @@ export const SpeciesInfoView: React.FC = () => {
           </div>
           <h3 className="font-bold text-slate-900 text-sm">อุปกรณ์ติดตามนกกาฮัง</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            ใช้แท็กน้ำหนักเบาไม่เกิน 3% ของน้ำหนักตัวนก ติดตั้งระบบ Solar & Battery, เซนเซอร์ GPS/GNSS, วัดอุณหภูมิ และส่งสัญญาณผ่านระบบดาวเทียม GlobalStar IoT เครือข่าย LEO Satellite
+            ใช้อุปกรณ์น้ำหนักเบาไม่เกิน 3% ของน้ำหนักตัวนก ติดตั้งระบบ Solar & Battery, เซนเซอร์ GPS/GNSS, วัดอุณหภูมิ และส่งสัญญาณผ่านระบบดาวเทียม GlobalStar เครือข่าย LEO Satellite
           </p>
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-slate-500">รหัสอุปกรณ์:</span>
-            <span className="font-bold text-slate-800 font-mono">KKOZ01</span>
+            <span className="font-bold text-slate-800 font-mono">KKOZ01-02</span>
           </div>
         </div>
       </div>

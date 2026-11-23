@@ -21,7 +21,7 @@ import {
   formatLatitude,
   formatLongitude,
   formatThaiDate,
-  exportToCSV,
+  exportToSplitSheetsExcel,
 } from '../utils/formatters';
 
 interface ReportsViewProps {
@@ -136,7 +136,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records, latest }) => 
   }, [dailyPoints]);
 
   const handleExport = () => {
-    exportToCSV(records, `hornbill-telemetry-report-${Date.now()}.csv`);
+    exportToSplitSheetsExcel(records, `hornbill-telemetry-KKOZ01-KKOZ02-${Date.now()}.xlsx`);
   };
 
   return (

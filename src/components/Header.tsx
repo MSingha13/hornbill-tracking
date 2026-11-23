@@ -111,14 +111,14 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
 
-          {/* Export CSV Button */}
+          {/* Export Split-Sheet Excel/CSV Button */}
           <button
             onClick={onExportCSV}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all active:scale-95"
-            title="ดาวน์โหลดพิกัดเป็นไฟล์ CSV"
+            title="ส่งออกไฟล์แยกชีต KKOZ01 และ KKOZ02 (.xlsx)"
           >
             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
-            <span className="hidden md:inline">ส่งออก CSV</span>
+            <span className="hidden md:inline">ส่งออก Excel (CSV)</span>
           </button>
         </div>
       </div>

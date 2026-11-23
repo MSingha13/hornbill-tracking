@@ -15,7 +15,7 @@ import { SatMapView } from './components/SatMapView';
 import { UserManualView } from './components/UserManualView';
 import { AssetSelector } from './components/AssetSelector';
 import { TrackingRecord, TrackingApiResponse, AssetFilterType, DateFilterMode, normalizeAssetId, KKOZ01_BASELINE_RECORD } from './types/tracking';
-import { exportToCSV, formatThaiDateTime, formatThaiDate, getRecordDateKey, getRecordTimestamp } from './utils/formatters';
+import { exportToSplitSheetsExcel, formatThaiDateTime, formatThaiDate, getRecordDateKey, getRecordTimestamp } from './utils/formatters';
 import { API_ENDPOINT, API_SPOT_SYNC_ENDPOINT, SCRIPT_UPDATE_ACTION } from './assets/assets';
 import {
   SheetSourceConfig,
@@ -356,9 +356,40 @@ export default function App() {
   }, [fetchData]);
 
   const handleExportCSV = () => {
-    const assetLabel = selectedAssetFilter === 'ALL' ? 'ALL' : selectedAssetFilter;
-    const recordsToExport = displayedRecords.length > 0 ? displayedRecords : assetFilteredRecords;
-    exportToCSV(recordsToExport, `hornbill-tracking-${assetLabel}.csv`);
+    if (!records || records.length === 0) return;
+
+    // Apply active time/date filter across BOTH KK0Z01 and KK0Z02 (never drop either sheet)
+    let recordsToExport = records;
+    if (filterMode === '1h' || filterMode === '24h' || filterMode === '7d' || filterMode === '1m') {
+      const hoursMap: Record<'1h' | '24h' | '7d' | '1m', number> = {
+        '1h': 1,
+        '24h': 24,
+        '7d': 7 * 24,
+        '1m': 30 * 24,
+      };
+      const timestamps = records.map(getRecordTimestamp).filter((t) => t > 0);
+      const refTs = timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+      const cutoff = refTs - hoursMap[filterMode] * 3600 * 1000;
+      const matched = records.filter((r) => getRecordTimestamp(r) >= cutoff);
+      if (matched.length > 0) recordsToExport = matched;
+    } else if (filterMode === 'specific_date') {
+      const targetKey = selectedDateKey || latestDateKey;
+      const matched = records.filter((r) => getRecordDateKey(r) === targetKey);
+      if (matched.length > 0) recordsToExport = matched;
+    }
+
+    const { kkoz01Count: sheet1Count, kkoz02Count: sheet2Count } = exportToSplitSheetsExcel(
+      recordsToExport,
+      `hornbill-tracking-KKOZ01-KKOZ02.xlsx`
+    );
+
+    setSyncStatus({
+      type: 'success',
+      message: `ส่งออกไฟล์ Excel แยกชีตสำเร็จ: ชีต KKOZ01 (${sheet1Count} แถว) และชีต KKOZ02 (${sheet2Count} แถว)`,
+    });
+    setTimeout(() => {
+      setSyncStatus(null);
+    }, 5000);
   };
 
   const handleSelectRecord = (r: TrackingRecord) => {
@@ -747,14 +778,10 @@ export default function App() {
                 onSelectDateKey={(k) => setSelectedDateKey(k)}
                 selectedRecord={selectedRecord}
                 onSelectRecord={handleSelectRecord}
-                onExportCSV={handleExportCSV}
-                onRefresh={() => fetchData(true, filterMode === 'all')}
-                isLoading={isLoading}
                 selectedAssetFilter={selectedAssetFilter}
                 onSelectAssetFilter={handleAssetFilterChange}
                 kkoz01Count={kkoz01Count}
                 kkoz02Count={kkoz02Count}
-                onOpenSheetConfig={() => setIsSheetModalOpen(true)}
               />
             </div>
           )}

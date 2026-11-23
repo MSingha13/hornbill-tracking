@@ -200,7 +200,7 @@ export const UserManualView: React.FC = () => {
                   </div>
                   <div className="font-bold text-emerald-950 text-xs">อุปกรณ์ส่งสัญญาณ SPOT</div>
                   <p className="text-[11px] text-slate-600">
-                    ติดตั้งบนหลังนกกาฮัง ส่งคลื่นวิทยุ L-band (1610-1620 MHz) พร้อมระบบพิกัด GNSS, อุณหภูมิ และระดับแบตเตอรี่
+                    ติดตั้งบนหลังนกกาฮัง ส่งคลื่นวิทยุย่านความถี่ L-band (1610-1620 MHz) พร้อมพิกัด GNSS, ค่าอุณหภูมิ และระดับแบตเตอรี่
                   </p>
                 </div>
 
@@ -208,7 +208,7 @@ export const UserManualView: React.FC = () => {
                   <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-xs">
                     2
                   </div>
-                  <div className="font-bold text-sky-950 text-xs">กลุ่มดาวเทียม Globalstar</div>
+                  <div className="font-bold text-sky-950 text-xs">กลุ่มดาวเทียม Globalstar constellation</div>
                   <p className="text-[11px] text-slate-600">
                     ดาวเทียมวงโคจรต่ำ (LEO) ทั้ง 28 ดวงที่โคจรผ่านประเทศไทย รับสัญญาณและส่งต่อลงมายังสถานีภาคพื้นดิน
                   </p>
@@ -454,14 +454,13 @@ export const UserManualView: React.FC = () => {
         <div className="avoid-break space-y-4">
           <div
             onClick={() => toggleSection('sec5')}
-            className="flex items-center justify-between pb-2 border-b border-slate-200 cursor-pointer"
-          >
+            className="flex items-center justify-between pb-2 border-b border-slate-200 cursor-pointer">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
                 5
               </div>
               <h2 className="text-lg font-bold text-slate-900">
-                วงโคจรดาวเทียม Globalstar (Satellite Radar & Passes)
+                วงโคจรดาวเทียม Globalstar Constellation (Satellite Passes)
               </h2>
             </div>
             <div className="text-slate-400">
@@ -475,13 +474,13 @@ export const UserManualView: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <div className="font-bold text-emerald-400 flex items-center gap-2">
                     <Radio className="w-4 h-4 text-emerald-400" />
-                    <span>อุปกรณ์ติดตามนก: อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง</span>
+                    <span>อุปกรณ์ติดตามนกกาฮัง: ณ อุทยานแห่งชาติแจ้ซ้อน จ.ลำปาง</span>
                   </div>
                   <span className="text-[11px] font-mono text-slate-400">18.8350° N, 99.4715° E</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <div className="text-slate-400">รัศมีตรวจจับเรดาร์:</div>
+                    <div className="text-slate-400">รัศมีการเชื่อมต่อดาวเทียม:</div>
                     <div className="font-bold text-emerald-300 mt-0.5">2,000 กิโลเมตร</div>
                   </div>
                   <div>
